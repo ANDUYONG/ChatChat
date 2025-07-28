@@ -8,6 +8,7 @@
     android:layout_height="match_parent"
     android:background="#E9EBEE" tools:context=".ChatRoomActivity">
 
+    <!-- App Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutAppBar"
         android:layout_width="match_parent"
@@ -36,7 +37,8 @@
             android:id="@+id/textViewChatRoomTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="홍길동" android:textSize="20sp"
+            android:text="홍길동"
+            android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -47,7 +49,8 @@
             android:id="@+id/imageViewMenu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_menu_hamburger" app:layout_constraintEnd_toEndOf="parent"
+            android:src="@drawable/ic_menu_hamburger"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:clickable="true"
@@ -56,6 +59,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Chat Messages RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewChatMessages"
         android:layout_width="0dp"
@@ -69,58 +73,172 @@
         app:layout_constraintBottom_toTopOf="@+id/layoutMessageInput"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/item_chat_sent_message" /> <androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/layoutMessageInput"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@android:color/white"
-    android:padding="8dp"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintEnd_toEndOf="parent">
+        tools:listitem="@layout/item_chat_sent_message" />
 
-    <ImageView
-        android:id="@+id/imageViewAttach"
-        android:layout_width="34dp"
-        android:layout_height="40dp"
-        android:clickable="true"
-        android:contentDescription="첨부"
-        android:focusable="true"
-        android:src="@drawable/ic_add_circle"
+    <!-- Message Input Layout -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutMessageInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <EditText
-        android:id="@+id/editTextMessage"
-        android:layout_width="0dp"
+        <ImageView
+            android:id="@+id/imageViewAttach"
+            android:layout_width="34dp"
+            android:layout_height="40dp"
+            android:clickable="true"
+            android:contentDescription="첨부"
+            android:focusable="true"
+            android:src="@drawable/ic_add_circle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/editTextMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="메시지를 입력하세요"
+            android:inputType="textMultiLine"
+            android:maxLines="5"
+            android:background="@drawable/rounded_edittext_background"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            app:layout_constraintStart_toEndOf="@+id/imageViewAttach"
+            app:layout_constraintEnd_toStartOf="@+id/imageViewSend"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"/>
+
+        <ImageView
+            android:id="@+id/imageViewSend"
+            android:layout_width="35dp"
+            android:layout_height="48dp"
+            android:clickable="true"
+            android:contentDescription="메시지 보내기"
+            android:focusable="true"
+            android:src="@drawable/ic_send_arrow"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Multimedia Attachment Layout (새로 추가) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutMultimediaAttach"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="메시지를 입력하세요"
-        android:inputType="textMultiLine"
-        android:maxLines="5"
-        android:background="@drawable/rounded_edittext_background" android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        app:layout_constraintStart_toEndOf="@+id/imageViewAttach"
-        app:layout_constraintEnd_toStartOf="@+id/imageViewSend"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"/>
+        android:background="@android:color/white"
+        android:padding="16dp"
+        android:elevation="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/layoutMessageInput"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <ImageView
-        android:id="@+id/imageViewSend"
-        android:layout_width="35dp"
-        android:layout_height="48dp"
-        android:clickable="true"
-        android:contentDescription="메시지 보내기"
-        android:focusable="true"
-        android:src="@drawable/ic_send_arrow"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Camera Button -->
+            <LinearLayout
+                android:id="@+id/buttonCamera"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp">
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_camera"
+                    android:contentDescription="카메라"
+                    app:tint="@color/material_on_surface_emphasis_medium" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="카메라"
+                    android:textSize="12sp"
+                    android:textColor="@color/material_on_surface_emphasis_medium"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- Photo Button -->
+            <LinearLayout
+                android:id="@+id/buttonPhoto"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp">
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_image"
+                    android:contentDescription="사진"
+                    app:tint="@color/material_on_surface_emphasis_medium" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="사진"
+                    android:textSize="12sp"
+                    android:textColor="@color/material_on_surface_emphasis_medium"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- File Button -->
+            <LinearLayout
+                android:id="@+id/buttonFile"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp">
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_folder"
+                    android:contentDescription="파일"
+                    app:tint="@color/material_on_surface_emphasis_medium" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="파일"
+                    android:textSize="12sp"
+                    android:textColor="@color/material_on_surface_emphasis_medium"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- Add more buttons as needed -->
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

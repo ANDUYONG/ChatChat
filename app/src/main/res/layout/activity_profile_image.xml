@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    tools:context=".ProfileImageActivity">
+
+    <!-- 닫기 버튼 (왼쪽 상단) -->
+<ImageView
+android:id="@+id/imageViewClose"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:src="@drawable/ic_close_white"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toTopOf="parent"
+android:padding="16dp"
+android:clickable="true"
+android:focusable="true"
+android:contentDescription="닫기 버튼" />
+
+    <!-- 갤러리/썸네일 버튼 (오른쪽 상단) -->
+<ImageView
+android:id="@+id/imageViewGalleryThumbnail"
+android:layout_width="48dp"
+android:layout_height="48dp"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintTop_toTopOf="parent"
+android:padding="16dp"
+android:clickable="true"
+android:focusable="true"
+android:contentDescription="갤러리 썸네일" />
+
+    <!-- 프로필 상세 이미지 (중앙) - 이제 하나의 이미지만 표시합니다. -->
+<ImageView
+android:id="@+id/imageViewProfileDetail"
+android:layout_width="0dp"
+android:layout_height="0dp"
+android:scaleType="fitCenter"
+android:src="@drawable/ic_default_profile_filled"
+app:layout_constraintTop_toBottomOf="@+id/imageViewGalleryThumbnail"
+app:layout_constraintBottom_toBottomOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintDimensionRatio="H,1:1"
+android:contentDescription="프로필 상세 이미지" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

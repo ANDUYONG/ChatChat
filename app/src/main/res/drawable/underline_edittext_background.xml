@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 이 item은 EditText의 전체 배경을 투명하게 만듭니다. -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    <!-- 이 item은 EditText의 하단에 밑줄을 그립니다. -->
+    <item android:gravity="bottom">
+        <shape android:shape="rectangle">
+            <solid android:color="#CCCCCC" /> <!-- 밑줄 색상 (회색) -->
+            <size android:height="1dp" /> <!-- 밑줄 두께 -->
+        </shape>
+    </item>
+</layer-list>

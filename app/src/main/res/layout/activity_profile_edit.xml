@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    tools:context=".ProfileEditActivity">
+
+    <!-- 배경화면 ImageView -->
+    <ImageView
+        android:id="@+id/profileViewBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/default_profile_background"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="배경 이미지" />
+
+    <!-- 닫기 버튼 (왼쪽 상단) -->
+    <ImageView
+        android:id="@+id/imageViewClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_close"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:padding="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="닫기 버튼" />
+
+    <!-- 프로필 사진 영역 (원형 이미지와 카메라 아이콘) -->
+    <FrameLayout
+        android:id="@+id/frameLayoutProfilePicture"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="300dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <!-- 프로필 사진 ImageView -->
+    <ImageView
+        android:id="@+id/imageViewProfilePicture"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/circle_shape"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_default_profile_filled"
+        android:contentDescription="프로필 사진" />
+
+    <!-- 카메라 아이콘 (프로필 사진 위에 오버레이) -->
+    <ImageView
+        android:id="@+id/imageViewCameraIcon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@drawable/ic_camera"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="프로필 사진 변경" />
+
+</FrameLayout>
+
+    <!-- 이름/닉네임 표시 및 편집 버튼 영역 -->
+<LinearLayout
+android:id="@+id/linearLayoutName"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:layout_marginTop="32dp"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toBottomOf="@+id/frameLayoutProfilePicture">
+
+<!-- 이름/닉네임 TextView (이제 EditText가 아님) -->
+<TextView
+    android:id="@+id/textViewUserName"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="홍길동"
+    android:textSize="24sp"
+    android:textStyle="bold"
+    android:background="@drawable/underline_text_background"
+android:paddingBottom="4dp"
+android:gravity="center_horizontal" />
+
+<!-- 이름 편집 연필 아이콘 -->
+<ImageView
+    android:id="@+id/imageViewEditName"
+    android:layout_width="24dp"
+    android:layout_height="24dp"
+    android:src="@drawable/ic_edit_pencil"
+    android:layout_marginStart="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:contentDescription="이름 편집" />
+
+</LinearLayout>
+
+    <!-- 상태 메시지 표시 및 편집 버튼 영역 -->
+<LinearLayout
+android:id="@+id/linearLayoutStatusMessage"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:layout_marginTop="16dp"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toBottomOf="@+id/linearLayoutName">
+
+<!-- 상태 메시지 TextView (이제 EditText가 아님) -->
+<TextView
+    android:id="@+id/textViewStatusMessage"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="배고픈 하루"
+    android:textSize="16sp"
+    android:background="@drawable/underline_text_background"
+android:paddingBottom="4dp"
+android:gravity="center_horizontal" />
+
+<!-- 상태 메시지 편집 연필 아이콘 -->
+<ImageView
+    android:id="@+id/imageViewEditStatus"
+    android:layout_width="24dp"
+    android:layout_height="24dp"
+    android:src="@drawable/ic_edit_pencil"
+    android:layout_marginStart="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:contentDescription="상태 메시지 편집" />
+
+</LinearLayout>
+    <LinearLayout
+        android:id="@+id/linearLayoutBottomActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3" app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="#F0F0F0" android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:id="@+id/layoutBackgroundChange"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_camera" android:contentDescription="1대1 채팅" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="배경화면 바꾸기"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 하단 버튼 영역은 제거되었습니다. -->
+
+    <!-- 반투명 오버레이 화면 (초기에는 숨김) -->
+<FrameLayout
+android:id="@+id/frameLayoutOverlay"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:background="#80000000"
+    android:visibility="gone"
+    android:clickable="true"
+    android:focusable="true"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <!-- 오버레이 닫기 버튼 (왼쪽 상단) -->
+<ImageView
+android:id="@+id/imageViewOverlayClose"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:src="@drawable/ic_close_white"
+    android:padding="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:contentDescription="오버레이 닫기" />
+
+    <!-- 오버레이 저장 버튼 (오른쪽 상단) -->
+<ImageView
+android:id="@+id/imageViewOverlaySave"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:src="@drawable/ic_check_white"
+    android:layout_gravity="top|end"
+    android:padding="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:contentDescription="오버레이 저장" />
+
+    <!-- 오버레이 내 EditText (가운데 정렬) -->
+<EditText
+android:id="@+id/editTextOverlayInput"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:layout_gravity="center"
+android:layout_marginStart="32dp"
+android:layout_marginEnd="32dp"
+android:background="@drawable/edittext_white_background"
+    android:padding="12dp"
+    android:singleLine="true"
+    android:imeOptions="actionDone"
+    android:inputType="text"
+    android:textColor="@android:color/black"
+    android:textColorHint="#808080"
+    android:hint="내용을 입력하세요" />
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

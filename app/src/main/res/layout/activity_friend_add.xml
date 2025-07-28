@@ -58,34 +58,27 @@
             android:padding="8dp">
 
             <EditText
-                android:id="@+id/editTextSearch"
+                android:id="@+id/findEditText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:hint="홍길"
+                android:background="@drawable/rounded_edittext_background"
+                android:drawableEnd="@android:drawable/ic_menu_search"
+                android:drawablePadding="8dp"
+                android:hint="검색어를 입력하세요"
+                android:imeOptions="actionSearch"
                 android:inputType="text"
-                android:singleLine="true"
-                android:background="@android:color/transparent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/imageViewSearchIcon"
-                app:layout_constraintTop_toTopOf="parent"
+                android:minHeight="48dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_marginEnd="8dp"
-                />
-            <ImageView
-                android:id="@+id/imageViewSearchIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="@android:drawable/ic_menu_search"
-                android:contentDescription="검색"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewFriendList"
+            android:id="@+id/profileView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"

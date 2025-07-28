@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatChat">
         <activity
+            android:name=".ProfileEditActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProfileBackgroundActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProfileImageActivity"
+            android:exported="false" />
+        <activity
             android:name=".ChatListActivity"
             android:exported="false" />
         <activity

@@ -3,6 +3,8 @@ package com.takeiteasy.chatchat;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
@@ -19,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.takeiteasy.chatchat.helper.IntentHelper;
 import com.takeiteasy.chatchat.model.profile.ProfileData;
 import com.takeiteasy.chatchat.model.profile.adapter.ProfileDataListAdapter;
 import com.takeiteasy.chatchat.model.signup.SignUpData;
@@ -34,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView profileView;
     private BottomNavigationView bottomTabLayout;
     private ProfileDataListAdapter profileListAdapter;
-    private List<ProfileData> profileList; // Profile 객체 리스트
-    private List<ProfileData> fullProfileList; // ⭐ 원본 전체 친구 목록 ⭐
+    private List<Parcelable> profileList; // Profile 객체 리스트
+    private List<Parcelable> fullProfileList; // ⭐ 원본 전체 친구 목록 ⭐
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         profileView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
 
         // 3. ⭐⭐ 친구 데이터 생성 (Profile 객체로 5개 임의 생성하는 부분) ⭐⭐
-        profileList = new ArrayList<>();
+        profileList = new ArrayList<Parcelable>();
         profileList.add(new ProfileData(
                 "user1@example.com", "010-1234-5678", "김지원", "1990-01-01",
                 "https://example.com/profile_jimin.jpg", // 예시 이미지 URL
@@ -92,42 +95,29 @@ public class MainActivity extends AppCompatActivity {
         ));
 
 
-        fullProfileList = new ArrayList<ProfileData>(profileList);
+        fullProfileList = new ArrayList<Parcelable>(profileList);
         profileListAdapter = new ProfileDataListAdapter(profileList);
         profileView.setAdapter(profileListAdapter);
         // 실제 앱에서는 이 데이터를 서버 API 호출을 통해 받아오거나 로컬 데이터베이스에서 로드하게 됩니다.
 
 
         // Intent로부터 SignUpData 객체 받기
-        Intent intent = getIntent();
-        if (intent != null && intent.hasExtra("signUpData")) {
-            // Android 13 (API 33) 이상에서는 getParcelableExtra(String name, Class<T> clazz)를 사용하는 것이 좋습니다.
-            // 이전 버전과의 호환성을 위해서는 getParcelableExtra(String name) 후 캐스팅이 필요합니다.
-            SignUpData signUpData;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                signUpData = intent.getParcelableExtra("signUpData", SignUpData.class);
-            } else {
-                //noinspection deprecation
-                signUpData = intent.getParcelableExtra("signUpData"); // API 33 미만 호환성을 위한 경고 무시
-            }
+        SignUpData signUpData = IntentHelper.getExtra(getIntent(), "signUpData", SignUpData.class);
+        if (signUpData != null) {
+            // 받은 데이터를 UI에 표시하거나 추가 처리 (예: 서버로 전송)
+            //                receivedEmailTextView.setText("이메일: " + signUpData.getEmail());
+            //                receivedBirthdayTextView.setText("생년월일: " + signUpData.getBirthday());
+            //                receivedPhoneTextView.setText("전화번호: " +
+            //                        signUpData.getPhone1() + "-" +
+            //                        signUpData.getPhone2() + "-" +
+            //                        signUpData.getPhone3());
 
-            if (signUpData != null) {
-                // 받은 데이터를 UI에 표시하거나 추가 처리 (예: 서버로 전송)
-//                receivedEmailTextView.setText("이메일: " + signUpData.getEmail());
-//                receivedBirthdayTextView.setText("생년월일: " + signUpData.getBirthday());
-//                receivedPhoneTextView.setText("전화번호: " +
-//                        signUpData.getPhone1() + "-" +
-//                        signUpData.getPhone2() + "-" +
-//                        signUpData.getPhone3());
-
-                // 참고: 비밀번호는 민감한 정보이므로, UI에 직접 표시하거나 로그에 남기지 않도록 주의하세요.
-                // 여기서는 예시로만 보여드립니다.
-                // String receivedPassword = signUpData.getPassword();
-                // Toast.makeText(this, "받은 비밀번호: " + receivedPassword, Toast.LENGTH_LONG).show();
-
-            } else {
-                Toast.makeText(this, "회원가입 데이터를 받지 못했습니다.", Toast.LENGTH_SHORT).show();
-            }
+            // 참고: 비밀번호는 민감한 정보이므로, UI에 직접 표시하거나 로그에 남기지 않도록 주의하세요.
+            // 여기서는 예시로만 보여드립니다.
+            // String receivedPassword = signUpData.getPassword();
+            // Toast.makeText(this, "받은 비밀번호: " + receivedPassword, Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "회원가입 데이터를 받지 못했습니다.", Toast.LENGTH_SHORT).show();
         }
 
         searchEditText.setOnTouchListener((v, event) -> {
@@ -159,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
         addButton.setOnClickListener(v -> {
             // 친구 추가 화면으로 이동하는 Intent
             Intent friendAddIntent = new Intent(MainActivity.this, FriendAddActivity.class); // AddFriendActivity는 실제 파일명으로 변경해야 합니다.
+            friendAddIntent.putParcelableArrayListExtra("fullProfileList", new ArrayList<>(fullProfileList));
             startActivity(friendAddIntent);
             Toast.makeText(MainActivity.this, "친구 추가 화면으로 이동", Toast.LENGTH_SHORT).show();
         });
@@ -192,14 +183,22 @@ public class MainActivity extends AppCompatActivity {
         String lowerCaseQuery = query.toLowerCase();
 
         // 검색 결과 저장할 리스트
+//        List<? super Parcelable> orginalList = new ArrayList<>(fullProfileList);
         List<ProfileData> filteredList = new ArrayList<>();
 
         // 검색어가 비어있거나 공백이라면 전체 목록을 표시
         if (lowerCaseQuery.isEmpty()) {
-            filteredList.addAll(fullProfileList);
+            if(fullProfileList.size() > 0 && !fullProfileList.isEmpty()) {
+                List<ProfileData> list = new ArrayList<>();
+                for(Parcelable data : fullProfileList) {
+                    list.add((ProfileData) data);
+                }
+                filteredList.addAll(list);
+            }
         } else {
             // 원본 전체 목록(fullProfileList)에서 검색
-            for (ProfileData profile : fullProfileList) {
+            for (Parcelable parcel : fullProfileList) {
+                ProfileData profile = (ProfileData) parcel;
                 // 닉네임(getNickName())이 검색어를 포함하는지 확인
                 if (profile.getNickName().toLowerCase().contains(lowerCaseQuery)) {
                     filteredList.add(profile);
