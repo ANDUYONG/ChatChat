@@ -24,6 +24,8 @@ import com.takeiteasy.chatchat.model.profile.adapter.ProfileDataListAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FriendAddActivity extends AppCompatActivity {
 
@@ -104,26 +106,14 @@ public class FriendAddActivity extends AppCompatActivity {
 
         // 검색 결과 저장할 리스트
 //        List<? super Parcelable> orginalList = new ArrayList<>(fullProfileList);
-        List<ProfileData> filteredList = new ArrayList<>();
+        List<Parcelable> filteredList = new ArrayList<>();
 
         // 검색어가 비어있거나 공백이라면 전체 목록을 표시
-        if (lowerCaseQuery.isEmpty()) {
-            if(fullProfileList.size() > 0 && !fullProfileList.isEmpty()) {
-                List<ProfileData> list = new ArrayList<>();
-                for(Parcelable data : fullProfileList) {
-                    list.add((ProfileData) data);
-                }
-                filteredList.addAll(list);
-            }
+        if (lowerCaseQuery.trim().isEmpty()) {
+            filteredList.addAll(fullProfileList);
         } else {
-            // 원본 전체 목록(fullProfileList)에서 검색
-            for (Parcelable parcel : fullProfileList) {
-                ProfileData profile = (ProfileData) parcel;
-                // 닉네임(getNickName())이 검색어를 포함하는지 확인
-                if (profile.getEmail().toLowerCase().contains(lowerCaseQuery)) {
-                    filteredList.add(profile);
-                }
-            }
+            Stream<ProfileData> stream = fullProfileList.stream().map(x -> (ProfileData) x);
+            filteredList = stream.filter(x -> lowerCaseQuery.equals(x.getEmail())).collect(Collectors.toList());
         }
 
         // 어댑터의 데이터를 필터링된 목록으로 업데이트하고 RecyclerView 갱신

@@ -89,12 +89,8 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
     }
 
     // (선택 사항) 어댑터 데이터 업데이트 메서드
-    public void setProfileDatas(List<ProfileData> newProfileDataList) { // 메서드 이름 변경
-        List<Parcelable> list = new ArrayList<>();
-        for(ProfileData data : newProfileDataList) {
-            list.add(data);
-        }
-        this.ProfileDataList = list;
+    public void setProfileDatas(List<Parcelable> newProfileDataList) { // 메서드 이름 변경
+        this.ProfileDataList = newProfileDataList;
         notifyDataSetChanged(); // 데이터가 변경되었음을 어댑터에 알림 (효율성을 위해 DiffUtil 권장)
     }
 }

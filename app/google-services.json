@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "837884216681",
+    "project_id": "chatchat-cb113",
+    "storage_bucket": "chatchat-cb113.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837884216681:android:3a56edb536afc15442e9f8",
+        "android_client_info": {
+          "package_name": "com.takeiteasy.chatchat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATqbGlC00eQfU4P_1CiwJdGI-ZUZs47tI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -8,7 +8,9 @@ import java.util.List;
 // Parcelable 인터페이스를 상속받도록 클래스 선언을 수정합니다.
 public class ProfileData implements Parcelable {
     private String email;
-    private String tel; // 전화번호 (SignUpData의 phone1-phone2-phone3이 합쳐진 형태일 수 있음)
+    private String tel1; // 전화번호 (SignUpData의 phone1-phone2-phone3이 합쳐진 형태일 수 있음)
+    private String tel2;
+    private String tel3;
     private String name; // 본명
     private String birth;
     private String profileUrl; // 프로필 사진 URL
@@ -17,12 +19,14 @@ public class ProfileData implements Parcelable {
     private String statusMsg; // 화면상에 표시될 상태 메시지
 
     // 1. 모든 필드 값을 받아 객체를 초기화하는 생성자입니다.
-    public ProfileData(String email, String tel, String name, String birth,
+    public ProfileData(String email, String tel1, String tel2, String tel3, String name, String birth,
                        String profileUrl, List<String> backgroundUrls,
                        String nickName, String statusMsg) {
 
         this.email = email;
-        this.tel = tel;
+        this.tel1 = tel1;
+        this.tel2 = tel2;
+        this.tel3 = tel3;
         this.name = name;
         this.birth = birth;
         this.profileUrl = profileUrl;
@@ -31,14 +35,26 @@ public class ProfileData implements Parcelable {
         this.statusMsg = statusMsg;
     }
 
+    public ProfileData () {}
+
     // 2. 게터(Getters) 메서드: 객체에 저장된 값을 외부에서 읽을 수 있도록 합니다.
     public String getEmail() {
         return email;
     }
 
-    public String getTel() {
-        return tel;
+
+    public String getTel1() {
+        return tel1;
     }
+
+    public String getTel2() {
+        return tel2;
+    }
+
+    public String getTel3() {
+        return tel3;
+    }
+
 
     public String getName() {
         return name;
@@ -73,7 +89,9 @@ public class ProfileData implements Parcelable {
      */
     protected ProfileData(Parcel in) {
         email = in.readString();
-        tel = in.readString();
+        tel1 = in.readString();
+        tel2 = in.readString();
+        tel3 = in.readString();
         name = in.readString();
         birth = in.readString();
         profileUrl = in.readString();
@@ -130,7 +148,9 @@ public class ProfileData implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(email);
-        dest.writeString(tel);
+        dest.writeString(tel1);
+        dest.writeString(tel2);
+        dest.writeString(tel3);
         dest.writeString(name);
         dest.writeString(birth);
         dest.writeString(profileUrl);
@@ -149,7 +169,9 @@ public class ProfileData implements Parcelable {
                 "nickName='" + nickName + '\'' +
                 ", statusMsg='" + statusMsg + '\'' +
                 ", email='" + email + '\'' +
-                ", tel='" + tel + '\'' +
+                ", tel1='" + tel1 + '\'' +
+                ", tel2='" + tel2 + '\'' +
+                ", tel3='" + tel3 + '\'' +
                 ", name='" + name + '\'' +
                 ", birth='" + birth + '\'' +
                 ", profileUrl='" + profileUrl + '\'' +
