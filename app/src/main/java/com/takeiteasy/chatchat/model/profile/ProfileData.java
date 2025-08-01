@@ -7,6 +7,12 @@ import java.util.List;
 
 // Parcelable 인터페이스를 상속받도록 클래스 선언을 수정합니다.
 public class ProfileData implements Parcelable {
+    private String userId;
+
+    public String getUserId() {
+        return userId;
+    }
+
     private String email;
     private String tel1; // 전화번호 (SignUpData의 phone1-phone2-phone3이 합쳐진 형태일 수 있음)
     private String tel2;
@@ -17,12 +23,20 @@ public class ProfileData implements Parcelable {
     private List<String> backgroundUrls; // 배경사진 URL 목록
     private String nickName; // 화면상에 표시될 이름 (사용자 닉네임)
     private String statusMsg; // 화면상에 표시될 상태 메시지
+    public boolean isSelected = false; // 이 필드를 사용하여 배경색을 변경할 겁니다.
+
+    private List<FriendData> friends;
+
+    public List<FriendData> getFriends() {
+        return friends;
+    }
 
     // 1. 모든 필드 값을 받아 객체를 초기화하는 생성자입니다.
-    public ProfileData(String email, String tel1, String tel2, String tel3, String name, String birth,
+    public ProfileData(String userId, String email, String tel1, String tel2, String tel3, String name, String birth,
                        String profileUrl, List<String> backgroundUrls,
-                       String nickName, String statusMsg) {
+                       String nickName, String statusMsg, List<FriendData> friends) {
 
+        this.userId = userId;
         this.email = email;
         this.tel1 = tel1;
         this.tel2 = tel2;
@@ -33,6 +47,7 @@ public class ProfileData implements Parcelable {
         this.backgroundUrls = backgroundUrls;
         this.nickName = nickName;
         this.statusMsg = statusMsg;
+        this.friends = friends;
     }
 
     public ProfileData () {}
@@ -80,6 +95,9 @@ public class ProfileData implements Parcelable {
         return statusMsg;
     }
 
+    public boolean isSelected() { return isSelected; }
+    public void setSelected(boolean selected) { isSelected = selected; }
+
     // --- Parcelable 구현 시작 ---
 
     /**
@@ -88,6 +106,7 @@ public class ProfileData implements Parcelable {
      * @param in 데이터를 포함하는 Parcel 객체
      */
     protected ProfileData(Parcel in) {
+        userId = in.readString();
         email = in.readString();
         tel1 = in.readString();
         tel2 = in.readString();
@@ -101,6 +120,7 @@ public class ProfileData implements Parcelable {
         in.readStringList(backgroundUrls); // Parcel에서 읽어온 문자열들을 리스트에 추가합니다.
         nickName = in.readString();
         statusMsg = in.readString();
+        friends = new ArrayList<>();
     }
 
     /**
@@ -147,6 +167,7 @@ public class ProfileData implements Parcelable {
      */
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(userId);
         dest.writeString(email);
         dest.writeString(tel1);
         dest.writeString(tel2);
@@ -158,6 +179,7 @@ public class ProfileData implements Parcelable {
         dest.writeStringList(backgroundUrls);
         dest.writeString(nickName);
         dest.writeString(statusMsg);
+        dest.writeList(friends);
     }
 
     // --- Parcelable 구현 끝 ---
@@ -168,6 +190,7 @@ public class ProfileData implements Parcelable {
         return "Profile{" +
                 "nickName='" + nickName + '\'' +
                 ", statusMsg='" + statusMsg + '\'' +
+                ", userId='" + userId + '\'' +
                 ", email='" + email + '\'' +
                 ", tel1='" + tel1 + '\'' +
                 ", tel2='" + tel2 + '\'' +
@@ -175,7 +198,8 @@ public class ProfileData implements Parcelable {
                 ", name='" + name + '\'' +
                 ", birth='" + birth + '\'' +
                 ", profileUrl='" + profileUrl + '\'' +
-                ", backgroundUrls=" + backgroundUrls +
+                ", backgroundUrls=" + backgroundUrls + '\'' +
+                ", friends=" + friends +
                 '}';
     }
 }

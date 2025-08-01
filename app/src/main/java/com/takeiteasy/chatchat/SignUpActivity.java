@@ -2,7 +2,9 @@ package com.takeiteasy.chatchat;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -20,8 +22,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.takeiteasy.chatchat.model.signup.SignUpData;
+import com.takeiteasy.chatchat.viewmodel.LoginViewModel;
+import com.takeiteasy.chatchat.viewmodel.SignUpViewModel;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -29,6 +34,7 @@ import java.util.regex.Pattern;
 
 public class SignUpActivity extends AppCompatActivity {
 
+    private SignUpViewModel viewModel;
     private EditText editTextEmail;
     private EditText editTextPassword;
     private TextView textViewPasswordError;
@@ -129,13 +135,28 @@ public class SignUpActivity extends AppCompatActivity {
             }
         });
 
+        viewModel = new ViewModelProvider(this).get(SignUpViewModel.class);
+        viewModel.getStatus().observe(this, response -> {
+            switch(response) {
+                case EMAIL_ALREADY_EXISTS:
+                    Toast.makeText(SignUpActivity.this, "이미 존재하는 이메일 입니다.", Toast.LENGTH_SHORT).show();
+                    break;
+                case SUCCESS:
+                    finish();
+                    Toast.makeText(SignUpActivity.this, "가입 완료!", Toast.LENGTH_SHORT).show();
+                    break;
+                case FAILURE:
+                    Toast.makeText(SignUpActivity.this, "가입 실패! 관리자에게 문의해주세요.", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        });
 
         // 가입하기 버튼 클릭 리스너
         buttonSignUp.setOnClickListener(v -> {
             if (validateInputs()) {
                 // 1. 화면의 입력 필드에서 값 가져오기
                 String email = editTextEmail.getText().toString().trim();
-                String password = editTextPassword.getText().toString(); // trim() 사용하지 않음 (비밀번호 공백은 의미있을 수 있음)
+                String pwd = editTextPassword.getText().toString(); // trim() 사용하지 않음 (비밀번호 공백은 의미있을 수 있음)
 
                 // 생년월일은 DatePicker 등에서 받아와 "YYYY-MM-DD" 형식으로 미리 포맷했다고 가정합니다.
                 // 여기서는 EditText에서 직접 가져오지만, 실제 앱에서는 DatePicker 사용을 권장합니다.
@@ -143,31 +164,23 @@ public class SignUpActivity extends AppCompatActivity {
 
                 // 전화번호는 스피너와 두 개의 EditText에서 가져옵니다.
                 // 'phone1'에 스피너 값, 'phone2'에 editTextPhone1 값, 'phone3'에 editTextPhone2 값 매핑
-                String phone1 = spinnerPhonePrefix.getSelectedItem().toString().trim(); // 예: "010", "+82" 등
-                String phone2 = editTextPhone1.getText().toString().trim();           // 예: "1234"
-                String phone3 = editTextPhone2.getText().toString().trim();           // 예: "5678"
+                String tel1 = spinnerPhonePrefix.getSelectedItem().toString().trim(); // 예: "010", "+82" 등
+                String tel2 = editTextPhone1.getText().toString().trim();           // 예: "1234"
+                String tel3 = editTextPhone2.getText().toString().trim();           // 예: "5678"
 
                 // 2. SignUpData 객체 생성
                 // 이 때 SignUpData 클래스의 생성자 인자 순서와 타입이 정확히 일치해야 합니다.
                 SignUpData signUpData = new SignUpData(
                         email,
-                        password,
+                        pwd,
                         birthday,
-                        phone1, // 스피너 값
-                        phone2, // editTextPhone1 값
-                        phone3  // editTextPhone2 값
+                        tel1, // 스피너 값
+                        tel2, // editTextPhone1 값
+                        tel3  // editTextPhone2 값
                 );
 
                 // TODO: 데이터베이스에 회원가입 정보 저장
-
-                // 3. 생성된 SignUpData 객체를 Intent에 담아 다음 Activity로 전달
-                Intent intent = new Intent(SignUpActivity.this, MainActivity.class); // 'NextActivity.class'를 실제 다음 화면 액티비티로 변경
-                intent.putExtra("signUpData", signUpData); // "signUpData"는 키(key)입니다. 다음 액티비티에서 이 키로 객체를 받습니다.
-                startActivity(intent);
-
-                // 선택 사항: 현재 회원가입 화면을 종료하여 뒤로 가기 시 다시 이 화면으로 돌아오지 않도록 합니다.
-                Toast.makeText(SignUpActivity.this, "회원가입 완료", Toast.LENGTH_SHORT).show();
-                finish();
+                viewModel.signUp(signUpData);
             } else {
                 Toast.makeText(SignUpActivity.this, "입력 정보를 다시 확인해주세요.", Toast.LENGTH_SHORT).show();
             }

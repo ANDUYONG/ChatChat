@@ -15,8 +15,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.takeiteasy.chatchat.model.auth.LoginData;
+import com.takeiteasy.chatchat.model.profile.adapter.ProfileDataListAdapter;
+import com.takeiteasy.chatchat.viewmodel.LoginViewModel;
+import com.takeiteasy.chatchat.viewmodel.MainViewModel;
 
 public class LoginActivity extends AppCompatActivity {
+    private LoginViewModel viewModel;
 
     private EditText editTextEmail;
     private EditText editTextPassword;
@@ -41,6 +48,31 @@ public class LoginActivity extends AppCompatActivity {
         // textViewForgotPassword = findViewById(R.id.textViewForgotPassword); // 필요시
          textViewSignUp = findViewById(R.id.textViewSignUp); // 필요시
 
+        // 3. 로그인 정보 검증 (★★★★★ 이 부분은 실제 앱에서 서버 통신으로 대체됩니다 ★★★★★)
+        // ViewModel의 LiveData를 관찰하여 데이터가 변경될 때 UI 업데이트
+        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        viewModel.getLoginUser().observe(this, response -> {
+            if(response != null) {
+                Toast.makeText(LoginActivity.this, "로그인 성공!", Toast.LENGTH_SHORT).show();
+
+                // SharedPreferences에 로그인 상태 저장
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean("isLoggedIn", true); // 로그인 상태를 true로 설정
+                editor.apply(); // 비동기적으로 저장
+
+                // MainActivity로 화면 전환
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("email", response.getEmail());
+                startActivity(intent);
+
+                // 현재 LoginActivity 종료 (뒤로 가기 방지)
+                finish();
+            } else {
+                Toast.makeText(LoginActivity.this, "이메일 또는 비밀번호가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         // 로그인 버튼 클릭 리스너
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,29 +87,11 @@ public class LoginActivity extends AppCompatActivity {
                     return; // 함수 종료
                 }
 
-                // 3. 로그인 정보 검증 (★★★★★ 이 부분은 실제 앱에서 서버 통신으로 대체됩니다 ★★★★★)
-                if (email.equals("abc") && password.equals("1")) {
-                    // 로그인 성공 시
-                    Toast.makeText(LoginActivity.this, "로그인 성공!", Toast.LENGTH_SHORT).show();
-
-                    // SharedPreferences에 로그인 상태 저장
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putBoolean("isLoggedIn", true); // 로그인 상태를 true로 설정
-                    editor.apply(); // 비동기적으로 저장
-
-                    // MainActivity로 화면 전환
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-
-                    // 현재 LoginActivity 종료 (뒤로 가기 방지)
-                    finish();
-                } else {
-                    // 로그인 실패 시
-                    Toast.makeText(LoginActivity.this, "이메일 또는 비밀번호가 올바르지 않습니다.", Toast.LENGTH_SHORT).show();
-                }
+                viewModel.login(email, password);
             }
         });
+
+
 
         textViewSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,19 +101,5 @@ public class LoginActivity extends AppCompatActivity {
                  startActivity(intent);
             }
         });
-
-        // (선택 사항) 비밀번호 찾기/회원가입 텍스트뷰 리스너 (이전에 구현한 내용 유지)
-        /*
-        textViewForgotPassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "비밀번호 찾기 화면으로 이동", Toast.LENGTH_SHORT).show();
-                // Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
-                // startActivity(intent);
-            }
-        });
-
-
-        */
     }
 }

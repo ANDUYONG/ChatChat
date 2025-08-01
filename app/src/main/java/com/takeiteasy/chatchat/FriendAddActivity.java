@@ -15,12 +15,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.takeiteasy.chatchat.helper.IntentHelper;
+import com.takeiteasy.chatchat.model.profile.FriendData;
 import com.takeiteasy.chatchat.model.profile.ProfileData;
 import com.takeiteasy.chatchat.model.profile.adapter.ProfileDataListAdapter;
+import com.takeiteasy.chatchat.viewmodel.MainViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +32,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FriendAddActivity extends AppCompatActivity {
+    private MainViewModel viewModel;
+    private String loginEmail;
+    private ProfileData selectedProfile = null;
 
+    private MaterialButton buttonAddFriend;
     private EditText findEditText;
     private RecyclerView profileView;
     private ImageView imageViewBack;
@@ -47,25 +55,59 @@ public class FriendAddActivity extends AppCompatActivity {
             return insets;
         });
 
+        buttonAddFriend = findViewById(R.id.buttonAddFriend);
         findEditText = findViewById(R.id.findEditText);
         profileView = findViewById(R.id.profileView);
         imageViewBack = findViewById(R.id.imageViewBack);
 
         Intent intent = getIntent();
-        fullProfileList = intent.getParcelableArrayListExtra("fullProfileList");
+        loginEmail = intent.getExtras().getString("email");
 
+        // 2. LayoutManager 설정 (수직 스크롤 목록)
         profileView.setLayoutManager(new LinearLayoutManager(FriendAddActivity.this));
-        ArrayList<Parcelable> defaultList = new ArrayList<>();
-        profileListAdapter = new ProfileDataListAdapter(defaultList);
-        profileView.setAdapter(profileListAdapter);
-//        if(fullProfileList != null && !fullProfileList.isEmpty()) {
-//            profileListAdapter = new ProfileDataListAdapter(fullProfileList);
-//            profileView.setAdapter(profileListAdapter);
-//        }
+
+        // 친구 목록 받아오기
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        // ViewModel의 LiveData를 관찰하여 데이터가 변경될 때 UI 업데이트
+        viewModel.getProfiles().observe(this, profileList -> {
+            // 또는 기존 어댑터의 데이터를 업데이트:
+            if (profileListAdapter != null) {
+                profileListAdapter.setProfileDatas(profileList);
+            } else {
+                profileListAdapter = new ProfileDataListAdapter(profileList, (profile, position) -> {
+                    selectedProfile = profile;
+                });
+                profileView.setAdapter(profileListAdapter);
+            }
+        });
+
+        viewModel.getStatus().observe(this, reponseStatus -> {
+            switch(reponseStatus) {
+                case SUCCESS:
+                    Toast.makeText(FriendAddActivity.this, "친구 추가!", Toast.LENGTH_SHORT).show();
+                    finish();
+                    break;
+                case FAILURE:
+                    Toast.makeText(FriendAddActivity.this, "친구 추가 실패!", Toast.LENGTH_SHORT).show();
+                    finish();
+                    break;
+            }
+        });
 
         // 닫기 > 친구목록으로 이동
         imageViewBack.setOnClickListener(v -> {
             finish();
+        });
+
+        // 친구 추가 버튼 클릭
+        buttonAddFriend.setOnClickListener(v -> {
+            if(selectedProfile != null) {
+                String userId = selectedProfile.getUserId();
+                String email = selectedProfile.getEmail();
+                viewModel.addFriend(loginEmail, new FriendData(userId, email, false, false));
+            }
+            else
+                Toast.makeText(FriendAddActivity.this, "선택된 프로필이 없습니다.", Toast.LENGTH_SHORT).show();
         });
 
         findEditText.setOnTouchListener((v, event) -> {
@@ -73,8 +115,7 @@ public class FriendAddActivity extends AppCompatActivity {
             if (event.getAction() == MotionEvent.ACTION_UP) {
                 // getCompoundDrawables()[2]는 drawableEnd를 의미합니다.
                 if (event.getRawX() >= (findEditText.getRight() - findEditText.getCompoundDrawables()[2].getBounds().width())) {
-                    // 돋보기 버튼 클릭 시 검색 수행
-                    performSearch(findEditText.getText().toString());
+                    viewModel.searchProfiles(findEditText.getText().toString());
                     return true;
                 }
             }
@@ -84,39 +125,10 @@ public class FriendAddActivity extends AppCompatActivity {
         // (선택 사항) 키보드의 검색(돋보기) 버튼 처리
         findEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                performSearch(findEditText.getText().toString());
+                viewModel.searchProfiles(findEditText.getText().toString());
                 return true;
             }
             return false;
         });
-    }
-
-    private void performSearch(String query) {
-        // performSearch 진입 시 profileListAdapter의 상태 로그
-        if (profileListAdapter == null) {
-            Log.e("FriendAddActivity", "performSearch: profileListAdapter is NULL at method entry! Cannot update RecyclerView.");
-            Toast.makeText(this, "친구 목록을 로드할 수 없습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
-            return; // 어댑터가 없으면 더 이상 진행하지 않습니다.
-        } else {
-            Log.d("FriendAddActivity", "performSearch: profileListAdapter is NOT NULL. Adapter Hash: " + System.identityHashCode(profileListAdapter));
-        }
-
-        // 검색어를 소문자로 변환하여 대소문자 구분 없이 검색
-        String lowerCaseQuery = query.toLowerCase();
-
-        // 검색 결과 저장할 리스트
-//        List<? super Parcelable> orginalList = new ArrayList<>(fullProfileList);
-        List<Parcelable> filteredList = new ArrayList<>();
-
-        // 검색어가 비어있거나 공백이라면 전체 목록을 표시
-        if (lowerCaseQuery.trim().isEmpty()) {
-            filteredList.addAll(fullProfileList);
-        } else {
-            Stream<ProfileData> stream = fullProfileList.stream().map(x -> (ProfileData) x);
-            filteredList = stream.filter(x -> lowerCaseQuery.equals(x.getEmail())).collect(Collectors.toList());
-        }
-
-        // 어댑터의 데이터를 필터링된 목록으로 업데이트하고 RecyclerView 갱신
-        profileListAdapter.setProfileDatas(filteredList); // ProfileDataListAdapter에 setProfileDatas 메서드가 있어야 합니다.
     }
 }

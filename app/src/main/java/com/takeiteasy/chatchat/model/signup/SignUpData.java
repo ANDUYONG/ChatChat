@@ -5,22 +5,22 @@ import android.os.Parcelable;
 
 public class SignUpData implements Parcelable {
     private String email;
-    private String password; // 실제 앱에서는 원본 비밀번호를 객체로 직접 전달하지 않도록 주의하세요.
+    private String pwd; // 실제 앱에서는 원본 비밀번호를 객체로 직접 전달하지 않도록 주의하세요.
     // 보통 서버에 전송 후 즉시 지우거나, 해시된 비밀번호를 사용합니다.
     private String birthday; // YYYY-MM-DD 형식으로 저장한다고 가정
-    private String phone1;  // 예: "10" (010의 10)
-    private String phone2;  // 예: "1234"
-    private String phone3;  // 예: "5678" (phonePart2가 2개로 나뉘어 있을 경우)
+    private String tel1;  // 예: "10" (010의 10)
+    private String tel2;  // 예: "1234"
+    private String tel3;  // 예: "5678" (telPart2가 2개로 나뉘어 있을 경우)
 
     // 1. 생성자: 모든 필드 값을 받아 객체를 초기화합니다.
-    public SignUpData(String email, String password, String birthday,
-                      String phone1, String phone2, String phone3) {
+    public SignUpData(String email, String pwd, String birthday,
+                      String tel1, String tel2, String tel3) {
         this.email = email;
-        this.password = password;
+        this.pwd = pwd;
         this.birthday = birthday;
-        this.phone1 = phone1;
-        this.phone2 = phone2;
-        this.phone3 = phone3;
+        this.tel1 = tel1;
+        this.tel2 = tel2;
+        this.tel3 = tel3;
     }
 
     // 2. 게터(Getters): 객체에 저장된 값을 외부에서 읽을 수 있도록 합니다.
@@ -28,25 +28,25 @@ public class SignUpData implements Parcelable {
         return email;
     }
 
-    public String getPassword() {
-        return password;
+    public String getPwd() {
+        return pwd;
     }
 
     public String getBirthday() {
         return birthday;
     }
 
-    // ⭐ 추가된 부분: phone1, phone2, phone3의 게터 메서드
-    public String getPhone1() {
-        return phone1;
+    // ⭐ 추가된 부분: tel1, tel2, tel3의 게터 메서드
+    public String getTel1() {
+        return tel1;
     }
 
-    public String getPhone2() {
-        return phone2;
+    public String getTel2() {
+        return tel2;
     }
 
-    public String getPhone3() {
-        return phone3;
+    public String getTel3() {
+        return tel3;
     }
 
 
@@ -57,11 +57,11 @@ public class SignUpData implements Parcelable {
     protected SignUpData(Parcel in) {
         // 읽는 순서는 쓰는 순서와 정확히 일치해야 합니다.
         email = in.readString();
-        password = in.readString();
+        pwd = in.readString();
         birthday = in.readString();
-        phone1 = in.readString();
-        phone2 = in.readString();
-        phone3 = in.readString();
+        tel1 = in.readString();
+        tel2 = in.readString();
+        tel3 = in.readString();
     }
 
     public static final Creator<SignUpData> CREATOR = new Creator<SignUpData>() {
@@ -85,11 +85,11 @@ public class SignUpData implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         // 필드들을 Parcel에 쓰는 순서. 이 순서대로 읽어야 합니다.
         dest.writeString(email);
-        dest.writeString(password);
+        dest.writeString(pwd);
         dest.writeString(birthday);
-        dest.writeString(phone1);
-        dest.writeString(phone2);
-        dest.writeString(phone3);
+        dest.writeString(tel1);
+        dest.writeString(tel2);
+        dest.writeString(tel3);
     }
 
     // (선택 사항) 디버깅을 위한 toString() 메서드
@@ -97,9 +97,9 @@ public class SignUpData implements Parcelable {
     public String toString() {
         return "SignUpData{" +
                 "email='" + email + '\'' +
-                ", password='" + "[REDACTED]" + '\'' + // 비밀번호는 로그에 노출하지 않도록 주의
+                ", pwd='" + "[REDACTED]" + '\'' + // 비밀번호는 로그에 노출하지 않도록 주의
                 ", birthday='" + birthday + '\'' +
-                ", tel='" + phone1 + "-" + phone2 + "-" + phone3 + '\'' +
+                ", tel='" + tel1 + "-" + tel2 + "-" + tel3 + '\'' +
                 '}';
     }
 }

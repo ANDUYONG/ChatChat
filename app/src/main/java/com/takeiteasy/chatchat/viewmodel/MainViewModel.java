@@ -1,13 +1,15 @@
 package com.takeiteasy.chatchat.viewmodel;
 
-import android.os.Parcelable;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.takeiteasy.chatchat.model.ReponseStatus;
+import com.takeiteasy.chatchat.model.profile.FriendData;
+import com.takeiteasy.chatchat.model.profile.FriendLoadedListener;
 import com.takeiteasy.chatchat.model.profile.ProfileData;
 import com.takeiteasy.chatchat.model.profile.ProfileLoadListener;
+import com.takeiteasy.chatchat.model.profile.ProfileSetListener;
 import com.takeiteasy.chatchat.model.profile.repository.ProfileRepository;
 
 import java.util.ArrayList;
@@ -15,51 +17,95 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MainViewModel extends ViewModel {
-    private MutableLiveData<List<Parcelable>> profiles;
-    private List<Parcelable> originalProfiles;
+    private MutableLiveData<List<ProfileData>> profiles;
+    private MutableLiveData<ReponseStatus> status;
+    private List<ProfileData> originalProfiles; // 필터링을 위한 원본 데이터
     private ProfileRepository repository;
 
     public MainViewModel() {
         profiles = new MutableLiveData<>();
         originalProfiles = new ArrayList<>();
         repository = new ProfileRepository();
+        this.status = new MutableLiveData<>();
     }
 
-    public LiveData<List<Parcelable>> getProfiles() {
+    public LiveData<List<ProfileData>> getProfiles() {
         return profiles;
     }
 
-    public void loadProfiles() {
-        repository.fetchProfiles(new ProfileLoadListener() {
+    public LiveData<ReponseStatus> getStatus() {
+        return status;
+    }
+
+    public void loadProfiles(String email) {
+        // ⭐ ProfileRepository.ProfileLoadListener 사용 및 시그니처 일치 ⭐
+        repository.fetchUsers(email, new FriendLoadedListener() {
             @Override
-            public void onProfilesLoaded(List<Parcelable> loadedProfiles) {
-                originalProfiles.addAll(loadedProfiles);
-                profiles.setValue(loadedProfiles); // ViewModel의 LiveData 업데이트
+            public void onBatchProfilesLoaded(List<ProfileData> friendProfiles) {
+                if(friendProfiles != null) {
+                    profiles.setValue(friendProfiles); // 검색 결과만 표시
+                } else {
+                    profiles.setValue(new ArrayList<>()); // ViewModel의 LiveData 업데이트 (결과 없음)
+                }
             }
 
             @Override
-            public void onProfilesLoadFailed(Exception e) {
-                // 오류 처리 (예: Toast 메시지, 다른 LiveData로 오류 상태 전달)
-                profiles.setValue(new ArrayList<>()); // 실패 시 빈 목록이라도 전달
+            public void onBatchProfilesLoadFailed(Exception e) {
+                // 로드 실패 시
+                profiles.setValue(new ArrayList<>()); // 빈 목록으로 설정
+                status.setValue(ReponseStatus.FAILURE); // 상태 업데이트
             }
         });
     }
 
-    /**
-     * 프로필 검색
-     * @param value
-     */
+    public void searchProfiles(String email) {
+        // ⭐ ProfileRepository.ProfileLoadListener 사용 및 시그니처 일치 ⭐
+        repository.fetchProfiles(email, new ProfileLoadListener() {
+            @Override
+            public void onProfilesLoaded(ProfileData profileData) {
+                List<ProfileData> profile = new ArrayList<>();
+                profile.add(profileData);
+                profiles.setValue(profile);
+            }
+
+            @Override
+            public void onProfilesLoadFailed(Exception e) {
+                List<ProfileData> profile = new ArrayList<>();
+                profiles.setValue(profile);
+            }
+        });
+    }
+
     public void filterProfiles(String value) {
+        if (originalProfiles == null || originalProfiles.isEmpty()) {
+            profiles.setValue(new ArrayList<>());
+            return;
+        }
+
         if (value.trim().isEmpty()) {
-            profiles.setValue(originalProfiles);
+            profiles.setValue(new ArrayList<>(originalProfiles));
         } else {
-            List<Parcelable> results = originalProfiles
+            List<ProfileData> results = originalProfiles
                     .stream()
-                    .map(x -> (ProfileData) x)
-                    .filter(x -> x.getNickName().contains(value))
+                    .filter(x -> x.getNickName().toLowerCase().contains(value.toLowerCase())) // 대소문자 구분 없이 검색
                     .collect(Collectors.toList());
             profiles.setValue(results);
         }
     }
 
+    public void addFriend(String loginEmail, FriendData friendData) { // 인자 변경
+        repository.addFriends(loginEmail, friendData, new ProfileSetListener() {
+            @Override
+            public void onComplete(ReponseStatus reponse) {
+                status.setValue(reponse);
+                // 친구 추가 성공 후, 친구 목록을 새로고침할 수 있습니다.
+                // loadProfiles(myEmail); // 필요하다면 여기서 호출
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                status.setValue(ReponseStatus.FAILURE);
+            }
+        });
+    }
 }

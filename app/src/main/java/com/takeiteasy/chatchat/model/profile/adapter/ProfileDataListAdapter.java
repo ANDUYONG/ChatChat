@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -21,10 +22,21 @@ import com.takeiteasy.chatchat.model.profile.ProfileData; // Profile 데이터 �
 // 어댑터 이름도 ProfileDataListAdapter로 변경
 public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataListAdapter.ProfileDataViewHolder> {
 
-    private List<Parcelable> ProfileDataList; // ProfileData 객체 리스트
+    private List<ProfileData> ProfileDataList; // ProfileData 객체 리스트
+    private OnItemClickListener listener = null; // 새롭게 추가된 클릭 리스너 인터페이스
 
-    public ProfileDataListAdapter(List<Parcelable> ProfileDataList) {
+    public interface OnItemClickListener {
+        void onItemClick(ProfileData profile, int position);
+    }
+
+    public ProfileDataListAdapter(List<ProfileData> ProfileDataList) {
         this.ProfileDataList = ProfileDataList;
+        this.listener = listener;
+    }
+
+    public ProfileDataListAdapter(List<ProfileData> ProfileDataList, OnItemClickListener listener) {
+        this.ProfileDataList = ProfileDataList;
+        this.listener = listener;
     }
 
     // 각 아이템 뷰의 UI 요소를 담는 ViewHolder (이름도 ProfileDataViewHolder로 변경)
@@ -32,6 +44,10 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
         ImageView profileImageView;
         TextView nameTextView; // 닉네임을 표시할 TextView
         TextView statusMessageTextView; // 상태 메시지를 표시할 TextView
+        private OnItemClickListener listener;
+
+        // 클릭 리스너 인터페이스 정의
+
 
         public ProfileDataViewHolder(View itemView) {
             super(itemView);
@@ -53,7 +69,10 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
     // ViewHolder에 데이터를 바인딩 (실제 데이터 표시)
     @Override
     public void onBindViewHolder(@NonNull ProfileDataViewHolder holder, int position) {
+        if(ProfileDataList.size() == 0) return;
+
         ProfileData ProfileData = (ProfileData) ProfileDataList.get(position); // Friend 대신 ProfileData 객체 사용
+        if(ProfileData == null) return;
 
         // ProfileData 객체의 getter를 사용하여 데이터 설정
         holder.nameTextView.setText(ProfileData.getNickName()); // 닉네임 표시
@@ -69,16 +88,43 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
             holder.profileImageView.setImageResource(R.drawable.ic_default_profile); // 기본 이미지
         }
 
+
+        // --- 끝 ---
+
         // 아이템 클릭 리스너 (선택 사항)
+//        holder.itemView.setOnClickListener(v -> {
+//            // TODO: 친구 항목 클릭 시 동작 정의 (예: 친구 프로필 화면으로 이동)
+//            // 현재 클릭된 친구의 ProfileData 객체를 다음 화면으로 전달
+//            Intent profileDetailActivity = new Intent(v.getContext(), ProfileDetailActivity.class); // ProfileDetailActivity는 실제 파일명으로 변경
+//            profileDetailActivity.putExtra("profileData", ProfileData); // ProfileData 객체를 Intent에 담아 전달
+//            v.getContext().startActivity(profileDetailActivity);
+////            Toast.makeText(v.getContext(), ProfileData.getNickName() + " 클릭됨!", Toast.LENGTH_SHORT).show();
+//            // 여기서는 ProfileData 객체의 다른 정보들도 사용 가능합니다:
+//            // Log.d("ProfileDataClick", "Email: " + ProfileData.getEmail() + ", Tel: " + ProfileData.getTel());
+//        });
+
+//        holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.selected_item_background));
+
+
         holder.itemView.setOnClickListener(v -> {
-            // TODO: 친구 항목 클릭 시 동작 정의 (예: 친구 프로필 화면으로 이동)
-            // 현재 클릭된 친구의 ProfileData 객체를 다음 화면으로 전달
-            Intent profileDetailActivity = new Intent(v.getContext(), ProfileDetailActivity.class); // ProfileDetailActivity는 실제 파일명으로 변경
-            profileDetailActivity.putExtra("profileData", ProfileData); // ProfileData 객체를 Intent에 담아 전달
-            v.getContext().startActivity(profileDetailActivity);
-//            Toast.makeText(v.getContext(), ProfileData.getNickName() + " 클릭됨!", Toast.LENGTH_SHORT).show();
-            // 여기서는 ProfileData 객체의 다른 정보들도 사용 가능합니다:
-            // Log.d("ProfileDataClick", "Email: " + ProfileData.getEmail() + ", Tel: " + ProfileData.getTel());
+            ProfileData.setSelected(!ProfileData.isSelected);
+            if (listener == null) {
+                // TODO: 친구 항목 클릭 시 동작 정의 (예: 친구 프로필 화면으로 이동)
+//            // 현재 클릭된 친구의 ProfileData 객체를 다음 화면으로 전달
+                Intent profileDetailActivity = new Intent(v.getContext(), ProfileDetailActivity.class); // ProfileDetailActivity는 실제 파일명으로 변경
+                profileDetailActivity.putExtra("profileData", ProfileData); // ProfileData 객체를 Intent에 담아 전달
+                v.getContext().startActivity(profileDetailActivity);
+            } else {
+                if (ProfileData.isSelected()) {
+                    holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.selected_item_background));
+                    listener.onItemClick(ProfileData, position);
+                } else {
+                    holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), android.R.color.transparent)); // 기본 투명 또는 흰색
+                    listener.onItemClick(null, position);
+                }
+
+
+            }
         });
     }
 
@@ -89,7 +135,7 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
     }
 
     // (선택 사항) 어댑터 데이터 업데이트 메서드
-    public void setProfileDatas(List<Parcelable> newProfileDataList) { // 메서드 이름 변경
+    public void setProfileDatas(List<ProfileData> newProfileDataList) { // 메서드 이름 변경
         this.ProfileDataList = newProfileDataList;
         notifyDataSetChanged(); // 데이터가 변경되었음을 어댑터에 알림 (효율성을 위해 DiffUtil 권장)
     }

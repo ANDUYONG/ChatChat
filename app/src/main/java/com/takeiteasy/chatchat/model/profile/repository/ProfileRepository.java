@@ -1,16 +1,27 @@
 package com.takeiteasy.chatchat.model.profile.repository;
 
+import static android.content.ContentValues.TAG;
+
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.takeiteasy.chatchat.model.ReponseStatus;
+import com.takeiteasy.chatchat.model.profile.FriendData;
+import com.takeiteasy.chatchat.model.profile.FriendLoadedListener;
 import com.takeiteasy.chatchat.model.profile.ProfileData;
 import com.takeiteasy.chatchat.model.profile.ProfileLoadListener;
+import com.takeiteasy.chatchat.model.profile.ProfileSetListener;
 
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,23 +33,129 @@ public class ProfileRepository {
         db = FirebaseFirestore.getInstance();
     }
 
-    public void fetchProfiles(ProfileLoadListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
+    // FriendProfilesLoadListener 인터페이스는 친구 프로필 목록을 전달하므로 ProfileLoadListener와 유사하게 변경했습니다.
+    // 기존 FriendLoadedListener가 friendProfiles만 받는다면, 이대로 사용해도 됩니다.
+    // 만약 본인 프로필도 함께 전달해야 한다면, ProfileLoadListener를 확장하거나 새로운 인터페이스를 정의합니다.
+    public interface FriendProfilesLoadListener {
+        void onProfilesLoaded(List<ProfileData> friendProfiles);
+        void onProfilesLoadFailed(Exception e);
+    }
+
+
+    public void fetchUsers(String email,  FriendLoadedListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
+        db.collection("users")
+                .whereEqualTo("email", email)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        ProfileData me = this.getProfile(task);
+                        List<String> ids = this.getFriends(task).stream().map(x -> x.getEmail()).collect(Collectors.toList());
+//                        List<String> ids = this.getFriends(task).stream().map(x -> x.getUserId()).collect(Collectors.toList());
+
+                        if(ids == null || ids.size() == 0)
+                            listener.onBatchProfilesLoaded(new ArrayList<>());
+
+                        this.batchProfiles(ids, new FriendProfilesLoadListener() {
+                            @Override
+                            public void onProfilesLoaded(List<ProfileData> friendProfiles) {
+                                List<ProfileData> results = new ArrayList<>();
+                                results.add(me);
+                                results.addAll(friendProfiles);
+                                listener.onBatchProfilesLoaded(results);
+                            }
+
+                            @Override
+                            public void onProfilesLoadFailed(Exception e) {
+                                listener.onBatchProfilesLoadFailed(e);
+                            }
+                        });
+                    }
+                });
+
+    }
+
+    private void batchProfiles(List<String> ids, FriendProfilesLoadListener listener) {
+        final int BATCH_SIZE = 10;
+        List<Task<QuerySnapshot>> batchTasks = new ArrayList<>(); // 모든 배치 쿼리 Task를 저장할 리스트
+        final List<ProfileData> allFriendProfiles = Collections.synchronizedList(new ArrayList<>()); // 모든 친구 프로필을 모을 스레드 안전한 리스트
+
+        // 친구 ID 리스트를 BATCH_SIZE (10개) 단위로 분할하여 쿼리 Task 생성
+        for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
+            int endIndex = Math.min(i + BATCH_SIZE, ids.size());
+            List<String> currentBatchIds = ids.subList(i, endIndex);
+
+            // Firestore 쿼리 생성 (문서 ID를 기준으로 whereIn 쿼리)
+            // 'users' 컬렉션의 문서 ID가 ProfileData의 userId와 동일하다고 가정
+            Task<QuerySnapshot> batchTask = db.collection("profiles")
+                    .whereIn("email", currentBatchIds)
+                    .get();
+            batchTasks.add(batchTask);
+        }
+
+        // 모든 배치 쿼리가 성공적으로 완료될 때까지 기다립니다.
+        Tasks.whenAllSuccess(batchTasks)
+                .addOnSuccessListener(results -> {
+                    // 모든 쿼리 결과들을 순회하며 ProfileData 객체로 변환하여 취합
+                    for (Object result : results) {
+                        QuerySnapshot querySnapshot = (QuerySnapshot) result;
+                        Stream<ProfileData> streams = querySnapshot.getDocuments().stream().map(x -> x.toObject(ProfileData.class));
+                        allFriendProfiles.addAll(streams.collect(Collectors.toList()));
+                    }
+                    listener.onProfilesLoaded(allFriendProfiles); // 최종 결과 전달
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "친구 프로필 배치 쿼리 중 하나 이상 실패: " + e.getMessage(), e);
+                    listener.onProfilesLoadFailed(e); // 오류 발생 시 콜백 호출
+                });
+    }
+
+    public void fetchProfiles(String email, ProfileLoadListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
         db.collection("profiles")
+                .whereEqualTo("email", email)
                 .get()
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()) {
-                        listener.onProfilesLoaded(this.getProfiles(task));
+                        listener.onProfilesLoaded(this.getProfile(task));
                     } else {
                         listener.onProfilesLoadFailed(task.getException());
                     }
                 });
     }
 
-    private List<Parcelable> getProfiles(Task<QuerySnapshot> task) {
+    public void addFriends(String loginEmail, FriendData friend, ProfileSetListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
+        db.collection("users")
+                .document("wcdnTDO9dTwSk4LqR61U")
+                .update("friends", FieldValue.arrayUnion(friend))
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()) {
+                        listener.onComplete(ReponseStatus.SUCCESS);
+                    } else {
+                        listener.onFailed(task.getException());
+                    }
+                });
+    }
+
+    private ProfileData getProfile(Task<QuerySnapshot> task) {
         return this.getStream(task.getResult().getDocuments().stream());
     }
 
-    private List<Parcelable> getStream(Stream<DocumentSnapshot> stream) {
+    private List<ProfileData> getProfiles(Task<QuerySnapshot> task) {
+        return this.getStreamFriendProfilesData(task.getResult().getDocuments().stream());
+    }
+
+    private ProfileData getStream(Stream<DocumentSnapshot> stream) {
+        return stream.map(x -> x.toObject(ProfileData.class)).findAny().orElse(null);
+    }
+
+    private List<FriendData> getFriends(Task<QuerySnapshot> task) {
+        return this.getStreamFriendData(task.getResult().getDocuments().stream()).flatMap(x -> x.getFriends().stream()).collect(Collectors.toList());
+    }
+
+    private Stream<ProfileData> getStreamFriendData(Stream<DocumentSnapshot> stream) {
+        return stream.map(x -> x.toObject(ProfileData.class));
+    }
+
+    private List<ProfileData> getStreamFriendProfilesData(Stream<DocumentSnapshot> stream) {
         return stream.map(x -> x.toObject(ProfileData.class)).collect(Collectors.toList());
     }
 

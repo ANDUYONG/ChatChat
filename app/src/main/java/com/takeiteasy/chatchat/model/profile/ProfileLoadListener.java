@@ -5,6 +5,6 @@ import android.os.Parcelable;
 import java.util.List;
 
 public interface ProfileLoadListener {
-    void onProfilesLoaded(List<Parcelable> profiles);
+    void onProfilesLoaded(ProfileData profile);
     void onProfilesLoadFailed(Exception e);
 }

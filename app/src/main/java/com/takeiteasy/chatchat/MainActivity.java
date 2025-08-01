@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity {
+    private String loginEmail;
+    private String loginUserId;
     private MainViewModel viewModel;
 
     private ImageButton addButton;
@@ -81,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
         // ViewModel의 LiveData를 관찰하여 데이터가 변경될 때 UI 업데이트
         viewModel.getProfiles().observe(this, profileList -> {
+            Toast.makeText(MainActivity.this, "목록 조회!", Toast.LENGTH_SHORT).show();
+
             // 또는 기존 어댑터의 데이터를 업데이트:
             if (profileListAdapter != null) {
                 profileListAdapter.setProfileDatas(profileList);
@@ -90,8 +94,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // ViewModel에게 데이터 로드를 요청
-        viewModel.loadProfiles();
+        // 현재 Activity를 시작시킨 Intent 가져오기
+        Intent mainIntent = getIntent();
+
+        // Intent가 null이 아닌지 확인
+        if (mainIntent != null) {
+            // Intent에 Extras (데이터 묶음)가 있는지 확인
+            // getExtras() 대신 get*Extra() 메서드를 직접 사용하는 것이 더 간결하고 안전할 수 있습니다.
+            Bundle extras = mainIntent.getExtras();
+            if (extras != null) {
+                // "email" 키로 String 데이터 가져오기
+                // getString()은 키가 없으면 null을 반환하므로 추가적인 null 체크가 필요할 수 있습니다.
+                loginEmail = extras.getString("email");
+                // ViewModel에게 데이터 로드를 요청
+                viewModel.loadProfiles(loginEmail);
+            }
+        } else {
+            Toast.makeText(MainActivity.this, "로그인 정보가 없습니다.", Toast.LENGTH_SHORT).show();
+        }
 
         searchEditText.setOnTouchListener((v, event) -> {
             // 돋보기 아이콘(drawableEnd)이 클릭되었는지 확인
@@ -123,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         addButton.setOnClickListener(v -> {
             // 친구 추가 화면으로 이동하는 Intent
             Intent friendAddIntent = new Intent(MainActivity.this, FriendAddActivity.class); // AddFriendActivity는 실제 파일명으로 변경해야 합니다.
-            friendAddIntent.putParcelableArrayListExtra("fullProfileList", new ArrayList<>(fullProfileList));
+            friendAddIntent.putExtra("email", loginEmail);
             startActivity(friendAddIntent);
             Toast.makeText(MainActivity.this, "친구 추가 화면으로 이동", Toast.LENGTH_SHORT).show();
         });
@@ -150,5 +170,11 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear(); // 모든 키-값 쌍 삭제
         editor.apply();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        viewModel.loadProfiles(loginEmail);
     }
 }
