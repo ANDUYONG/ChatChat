@@ -37,6 +37,7 @@ public class SignUpActivity extends AppCompatActivity {
     private SignUpViewModel viewModel;
     private EditText editTextEmail;
     private EditText editTextPassword;
+    private EditText editTextName;
     private TextView textViewPasswordError;
     private EditText editTextConfirmPassword;
     private TextView textViewPasswordMatch;
@@ -76,6 +77,7 @@ public class SignUpActivity extends AppCompatActivity {
         editTextPassword = findViewById(R.id.editTextPassword);
         textViewPasswordError = findViewById(R.id.textViewPasswordError);
         editTextConfirmPassword = findViewById(R.id.editTextConfirmPassword);
+        editTextName = findViewById(R.id.editTextName);
         textViewPasswordMatch = findViewById(R.id.textViewPasswordMatch);
         editTextBirthday = findViewById(R.id.editTextBirthday);
         spinnerPhonePrefix = findViewById(R.id.spinnerPhonePrefix); // Spinner로 변경
@@ -142,8 +144,8 @@ public class SignUpActivity extends AppCompatActivity {
                     Toast.makeText(SignUpActivity.this, "이미 존재하는 이메일 입니다.", Toast.LENGTH_SHORT).show();
                     break;
                 case SUCCESS:
-                    finish();
                     Toast.makeText(SignUpActivity.this, "가입 완료!", Toast.LENGTH_SHORT).show();
+                    finish();
                     break;
                 case FAILURE:
                     Toast.makeText(SignUpActivity.this, "가입 실패! 관리자에게 문의해주세요.", Toast.LENGTH_SHORT).show();
@@ -160,6 +162,7 @@ public class SignUpActivity extends AppCompatActivity {
 
                 // 생년월일은 DatePicker 등에서 받아와 "YYYY-MM-DD" 형식으로 미리 포맷했다고 가정합니다.
                 // 여기서는 EditText에서 직접 가져오지만, 실제 앱에서는 DatePicker 사용을 권장합니다.
+                String name = editTextName.getText().toString().trim();
                 String birthday = editTextBirthday.getText().toString().trim();
 
                 // 전화번호는 스피너와 두 개의 EditText에서 가져옵니다.
@@ -176,7 +179,8 @@ public class SignUpActivity extends AppCompatActivity {
                         birthday,
                         tel1, // 스피너 값
                         tel2, // editTextPhone1 값
-                        tel3  // editTextPhone2 값
+                        tel3,  // editTextPhone2 값
+                        name
                 );
 
                 // TODO: 데이터베이스에 회원가입 정보 저장
@@ -222,22 +226,28 @@ public class SignUpActivity extends AppCompatActivity {
         String phone2 = editTextPhone2.getText().toString();
 
         // 이메일 유효성 (간단한 예시)
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            editTextEmail.setError("올바른 이메일 주소를 입력해주세요.");
-            return false;
-        }
+//        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+//            editTextEmail.setError("올바른 이메일 주소를 입력해주세요.");
+//            return false;
+//        }
 
         // 비밀번호 유효성
-        if (!PASSWORD_PATTERN.matcher(password).matches()) {
-            Toast.makeText(this, "비밀번호는 최소 8자, 숫자와 문자를 포함해야 합니다.", Toast.LENGTH_LONG).show();
-            return false;
-        }
+//        if (!PASSWORD_PATTERN.matcher(password).matches()) {
+//            Toast.makeText(this, "비밀번호는 최소 8자, 숫자와 문자를 포함해야 합니다.", Toast.LENGTH_LONG).show();
+//            return false;
+//        }
 
         // 비밀번호 일치 여부
         if (!password.equals(confirmPassword)) {
             editTextConfirmPassword.setError("비밀번호가 일치하지 않습니다.");
             return false;
         }
+
+        // 생년월일 입력 여부
+//        if (!e.isEmpty()) {
+//            editTextBirthday.setError("성명을 입력해주세요.");
+//            return false;
+//        }
 
         // 생년월일 입력 여부
         if (birthday.isEmpty()) {

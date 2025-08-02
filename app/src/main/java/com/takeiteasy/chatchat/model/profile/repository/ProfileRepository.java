@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -42,34 +43,42 @@ public class ProfileRepository {
     }
 
 
-    public void fetchUsers(String email,  FriendLoadedListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
+    public void fetchUsers(String userId,  FriendLoadedListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
         db.collection("users")
-                .whereEqualTo("email", email)
+                .document(userId)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         ProfileData me = this.getProfile(task);
-                        List<String> ids = this.getFriends(task).stream().map(x -> x.getEmail()).collect(Collectors.toList());
-//                        List<String> ids = this.getFriends(task).stream().map(x -> x.getUserId()).collect(Collectors.toList());
+//                        List<String> ids = this.getFriends(task).stream().map(x -> x.getEmail()).collect(Collectors.toList());
+                        if(me == null) return;
 
-                        if(ids == null || ids.size() == 0)
-                            listener.onBatchProfilesLoaded(new ArrayList<>());
+                        List<String> ids = null;
+                        if(me.getFriends() != null && me.getFriends().size() > 0) {
+                            ids = me.getFriends().stream().map(x -> x.getUserId()).collect(Collectors.toList());
+                        }
 
-                        this.batchProfiles(ids, new FriendProfilesLoadListener() {
-                            @Override
-                            public void onProfilesLoaded(List<ProfileData> friendProfiles) {
-                                List<ProfileData> results = new ArrayList<>();
-                                results.add(me);
-                                results.addAll(friendProfiles);
-                                listener.onBatchProfilesLoaded(results);
-                            }
+                        List<ProfileData> results = new ArrayList<>();
+                        results.add(me);
+                        if(ids == null || ids.size() == 0) {
+                            listener.onBatchProfilesLoaded(results);
+                        } else {
+                            this.batchProfiles(ids, new FriendProfilesLoadListener() {
+                                @Override
+                                public void onProfilesLoaded(List<ProfileData> friendProfiles) {
+                                    results.addAll(friendProfiles);
+                                    listener.onBatchProfilesLoaded(results);
+                                }
 
-                            @Override
-                            public void onProfilesLoadFailed(Exception e) {
-                                listener.onBatchProfilesLoadFailed(e);
-                            }
-                        });
+                                @Override
+                                public void onProfilesLoadFailed(Exception e) {
+                                    listener.onBatchProfilesLoadFailed(e);
+                                }
+                            });
+                        }
                     }
+                }).addOnFailureListener(e -> {
+                    FirebaseCrashlytics.getInstance().recordException(e);
                 });
 
     }
@@ -87,7 +96,7 @@ public class ProfileRepository {
             // Firestore 쿼리 생성 (문서 ID를 기준으로 whereIn 쿼리)
             // 'users' 컬렉션의 문서 ID가 ProfileData의 userId와 동일하다고 가정
             Task<QuerySnapshot> batchTask = db.collection("profiles")
-                    .whereIn("email", currentBatchIds)
+                    .whereIn("userId", currentBatchIds)
                     .get();
             batchTasks.add(batchTask);
         }
@@ -105,6 +114,8 @@ public class ProfileRepository {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "친구 프로필 배치 쿼리 중 하나 이상 실패: " + e.getMessage(), e);
+                    // Crashlytics에 예외 기록
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     listener.onProfilesLoadFailed(e); // 오류 발생 시 콜백 호출
                 });
     }
@@ -115,16 +126,18 @@ public class ProfileRepository {
                 .get()
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()) {
-                        listener.onProfilesLoaded(this.getProfile(task));
+                        listener.onProfilesLoaded(this.searchProfile(task));
                     } else {
                         listener.onProfilesLoadFailed(task.getException());
                     }
+                }).addOnFailureListener(e -> {
+                    FirebaseCrashlytics.getInstance().recordException(e);
                 });
     }
 
-    public void addFriends(String loginEmail, FriendData friend, ProfileSetListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
+    public void addFriends(String userId, FriendData friend, ProfileSetListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
         db.collection("users")
-                .document("wcdnTDO9dTwSk4LqR61U")
+                .document(userId)
                 .update("friends", FieldValue.arrayUnion(friend))
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()) {
@@ -132,10 +145,37 @@ public class ProfileRepository {
                     } else {
                         listener.onFailed(task.getException());
                     }
-                });
+                }).addOnFailureListener(e -> {
+                    FirebaseCrashlytics.getInstance().recordException(e);
+                });;
     }
 
-    private ProfileData getProfile(Task<QuerySnapshot> task) {
+    private ProfileData getProfile(Task<DocumentSnapshot> task) {
+        if (task.isSuccessful()) {
+            DocumentSnapshot document = task.getResult();
+            if (document.exists()) { // 문서가 존재하는지 확인
+                // Stream.class 대신 ProfileData.class를 사용해야 할 수도 있습니다. 아래 2번 문제 참조.
+                ProfileData profileData = document.toObject(ProfileData.class);
+                if (profileData != null) {
+                    return profileData;
+                } else {
+                    // toObject()가 null을 반환한 경우 (예: 데이터 형식이 맞지 않을 때)
+                    System.err.println("Error: Stream object is null after toObject()");
+                    return null; // 또는 적절한 기본값/오류 처리
+                }
+            } else {
+                // 문서가 존재하지 않는 경우
+                System.out.println("Document does not exist.");
+                return null; // 또는 적절한 기본값/오류 처리
+            }
+        } else {
+            // Task가 실패한 경우
+            System.err.println("Error getting document: " + task.getException());
+            return null; // 또는 적절한 기본값/오류 처리
+        }
+    }
+
+    private ProfileData searchProfile(Task<QuerySnapshot> task) {
         return this.getStream(task.getResult().getDocuments().stream());
     }
 
@@ -147,9 +187,12 @@ public class ProfileRepository {
         return stream.map(x -> x.toObject(ProfileData.class)).findAny().orElse(null);
     }
 
-    private List<FriendData> getFriends(Task<QuerySnapshot> task) {
-        return this.getStreamFriendData(task.getResult().getDocuments().stream()).flatMap(x -> x.getFriends().stream()).collect(Collectors.toList());
-    }
+//    private List<FriendData> getFriends(Task<DocumentSnapshot> task) {
+//        Stream<ProfileData> result = this.getStreamFriendData(task.getResult().toObject(ProfileData.class));
+//        return result.filter(x -> x != null)
+//                .flatMap(x -> x.getFriends().stream())
+//                .collect(Collectors.toList());
+//    }
 
     private Stream<ProfileData> getStreamFriendData(Stream<DocumentSnapshot> stream) {
         return stream.map(x -> x.toObject(ProfileData.class));

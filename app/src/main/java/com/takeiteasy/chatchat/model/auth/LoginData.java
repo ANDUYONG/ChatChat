@@ -6,6 +6,12 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 
 public class LoginData implements Parcelable {
+    private String userId;
+
+    public String getUserId() {
+        return userId;
+    }
+
     private String email;
     private String pwd;
     private boolean isLoginCheck = false;
@@ -34,6 +40,7 @@ public class LoginData implements Parcelable {
     }
 
     public LoginData(Parcel in) {
+        this.userId = in.readString();
         this.email = in.readString();
         this.pwd = in.readString();
     }
@@ -57,6 +64,7 @@ public class LoginData implements Parcelable {
 
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
+        dest.writeString(userId);
         dest.writeString(email);
         dest.writeString(pwd);
     }
@@ -65,6 +73,7 @@ public class LoginData implements Parcelable {
     @Override
     public String toString() {
         return "LoginData{" +
+                "userId='" + userId + '\'' +
                 "email='" + email + '\'' +
                 ", pwd='" + pwd + '\'' +
                 '}';

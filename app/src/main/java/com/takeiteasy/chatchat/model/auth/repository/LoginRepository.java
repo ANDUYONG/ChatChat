@@ -3,6 +3,7 @@ package com.takeiteasy.chatchat.model.auth.repository;
 import android.os.Parcelable;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -31,6 +32,8 @@ public class LoginRepository {
                 } else {
                     listener.onLoginLoadFailed(task.getException());
                 }
+            }).addOnFailureListener(e -> {
+                FirebaseCrashlytics.getInstance().recordException(e);
             });
     }
 

@@ -37,9 +37,9 @@ public class MainViewModel extends ViewModel {
         return status;
     }
 
-    public void loadProfiles(String email) {
+    public void loadProfiles(String userId) {
         // ⭐ ProfileRepository.ProfileLoadListener 사용 및 시그니처 일치 ⭐
-        repository.fetchUsers(email, new FriendLoadedListener() {
+        repository.fetchUsers(userId, new FriendLoadedListener() {
             @Override
             public void onBatchProfilesLoaded(List<ProfileData> friendProfiles) {
                 if(friendProfiles != null) {
@@ -93,8 +93,8 @@ public class MainViewModel extends ViewModel {
         }
     }
 
-    public void addFriend(String loginEmail, FriendData friendData) { // 인자 변경
-        repository.addFriends(loginEmail, friendData, new ProfileSetListener() {
+    public void addFriend(String userId, FriendData friendData) { // 인자 변경
+        repository.addFriends(userId, friendData, new ProfileSetListener() {
             @Override
             public void onComplete(ReponseStatus reponse) {
                 status.setValue(reponse);

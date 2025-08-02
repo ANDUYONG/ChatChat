@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -39,8 +40,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity {
+    private boolean isFirstLaunch = true;
+    private SharedPreferences preferenceManager;// = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
     private String loginEmail;
-    private String loginUserId;
+    private String loginUserId; // = preferenceManager.getString("userId", null);
     private MainViewModel viewModel;
 
     private ImageButton addButton;
@@ -63,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        preferenceManager = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        loginUserId = preferenceManager.getString("userId", null);
 
         // TODO: 친구 목록 Firebase에서 조회 해오기
 
@@ -95,23 +101,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // 현재 Activity를 시작시킨 Intent 가져오기
-        Intent mainIntent = getIntent();
-
-        // Intent가 null이 아닌지 확인
-        if (mainIntent != null) {
-            // Intent에 Extras (데이터 묶음)가 있는지 확인
-            // getExtras() 대신 get*Extra() 메서드를 직접 사용하는 것이 더 간결하고 안전할 수 있습니다.
-            Bundle extras = mainIntent.getExtras();
-            if (extras != null) {
-                // "email" 키로 String 데이터 가져오기
-                // getString()은 키가 없으면 null을 반환하므로 추가적인 null 체크가 필요할 수 있습니다.
-                loginEmail = extras.getString("email");
-                // ViewModel에게 데이터 로드를 요청
-                viewModel.loadProfiles(loginEmail);
-            }
-        } else {
-            Toast.makeText(MainActivity.this, "로그인 정보가 없습니다.", Toast.LENGTH_SHORT).show();
-        }
+        viewModel.loadProfiles(loginUserId);
 
         searchEditText.setOnTouchListener((v, event) -> {
             // 돋보기 아이콘(drawableEnd)이 클릭되었는지 확인
@@ -166,8 +156,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        SharedPreferences.Editor editor = preferenceManager.edit();
         editor.clear(); // 모든 키-값 쌍 삭제
         editor.apply();
     }
@@ -175,6 +165,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        viewModel.loadProfiles(loginEmail);
+        if (isFirstLaunch) {
+            isFirstLaunch = false;
+        } else {
+            viewModel.loadProfiles(loginUserId);
+        }
+    }
+
+    // 화면 회전 시 isFirstLaunch가 재설정되는 것을 방지하려면
+    // onSaveInstanceState와 onRestoreInstanceState를 사용할 수 있습니다.
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("isFirstLaunch", isFirstLaunch);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        isFirstLaunch = savedInstanceState.getBoolean("isFirstLaunch");
     }
 }

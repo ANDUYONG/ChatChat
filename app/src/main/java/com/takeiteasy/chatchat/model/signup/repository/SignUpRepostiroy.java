@@ -1,5 +1,9 @@
 package com.takeiteasy.chatchat.model.signup.repository;
 
+import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.takeiteasy.chatchat.model.signup.SignUpData;
@@ -14,20 +18,43 @@ public class SignUpRepostiroy {
     }
 
     public void signUp(SignUpData signUpData, SignUpCompleteListner listener) {
-        checkEmailExist(signUpData.getEmail(), exist -> {
-            if(exist) {
-                listener.onComplete(SignUpStatus.EMAIL_ALREADY_EXISTS);
-            } else {
-                db.collection("users")
-                        .add(signUpData)
-                        .addOnCompleteListener(dc -> {
-                            listener.onComplete(SignUpStatus.SUCCESS);
-                        })
-                        .addOnFailureListener(e -> {
-                            listener.onComplete(SignUpStatus.FAILURE);
-                        });
-            }
-        });
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String email = signUpData.getEmail();
+        String pwd = signUpData.getPwd();
+
+        auth.createUserWithEmailAndPassword(email, pwd)
+                .addOnCompleteListener(task -> { // 'this'는 보통 Activity 또는 Fragment
+                    if (task.isSuccessful()) {
+                        // 새 사용자 계정 생성 성공
+                        FirebaseUser newUser = auth.getCurrentUser();
+                        if (newUser != null) {
+                            String newUid = newUser.getUid();
+                            signUpData.setUserId(newUid);
+
+                            checkEmailExist(signUpData.getEmail(), exist -> {
+                                if(exist) {
+                                    listener.onComplete(SignUpStatus.EMAIL_ALREADY_EXISTS);
+                                } else {
+                                    db.collection("users")
+                                            .document(newUid)
+                                            .set(signUpData)
+                                            .addOnCompleteListener(dc -> {
+                                                listener.onComplete(SignUpStatus.SUCCESS);
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                listener.onComplete(SignUpStatus.FAILURE);
+                                            });
+                                }
+                            });
+                        }
+                    } else {
+                        // 새 사용자 계정 생성 실패
+                        System.err.println("새 사용자 계정 생성 실패: " + task.getException().getMessage());
+                        // 예: 비밀번호가 너무 약함, 이메일이 이미 사용 중임 등
+                    }
+                });
+
+
     }
 
     public void checkEmailExist(String email, ExistCallck callback) {
@@ -47,6 +74,8 @@ public class SignUpRepostiroy {
                         System.err.println("Error checking email existence: " + task.getException());
                         callback.onResult(false);
                     }
+                }).addOnFailureListener(e -> {
+                    FirebaseCrashlytics.getInstance().recordException(e);
                 });
     }
 

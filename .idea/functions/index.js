@@ -61,7 +61,7 @@ exports.createProfileForNewUser = onDocumentCreated(
         userId: userId,
         email: newUser.email || null, // 이메일 필드가 없을 경우를 대비 (null 처리)
         name: newUser.name || "새 사용자", // 이름 필드가 없을 경우 기본값
-        nickName: newUser.name || "새 사용자",
+        nickName: newUser.nickName || "새 사용자",
         statusMsg: "",
         profileUrl: "",
         backgroundUrls: [],

@@ -59,6 +59,9 @@ public class LoginActivity extends AppCompatActivity {
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putBoolean("isLoggedIn", true); // 로그인 상태를 true로 설정
+                editor.putString("userId", response.getUserId());
+                editor.putString("email", response.getEmail());
+
                 editor.apply(); // 비동기적으로 저장
 
                 // MainActivity로 화면 전환

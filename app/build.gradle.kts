@@ -88,7 +88,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore") // Firebase Firestore (클라우드 데이터베이스)
 
     // 필요한 경우 다른 Firebase 서비스도 여기에 추가하세요:
-    // implementation("com.google.firebase:firebase-auth")       // Firebase 인증
+     implementation("com.google.firebase:firebase-auth")       // Firebase 인증
     // implementation("com.google.firebase:firebase-storage")     // Firebase Cloud Storage
     // implementation("com.google.firebase:firebase-messaging")   // Firebase Cloud Messaging (FCM)
     // implementation("com.google.firebase:firebase-database")    // Firebase Realtime Database

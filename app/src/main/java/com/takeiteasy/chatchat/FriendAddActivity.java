@@ -1,8 +1,10 @@
 package com.takeiteasy.chatchat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
@@ -32,8 +34,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FriendAddActivity extends AppCompatActivity {
-    private MainViewModel viewModel;
+
+    private SharedPreferences preferenceManager;// = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
     private String loginEmail;
+    private String loginUserId; // = preferenceManager.getString("userId", null);
+    private MainViewModel viewModel;
     private ProfileData selectedProfile = null;
 
     private MaterialButton buttonAddFriend;
@@ -54,6 +59,9 @@ public class FriendAddActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        preferenceManager = PreferenceManager.getDefaultSharedPreferences(FriendAddActivity.this);
+        loginUserId = preferenceManager.getString("userId", null);
 
         buttonAddFriend = findViewById(R.id.buttonAddFriend);
         findEditText = findViewById(R.id.findEditText);
@@ -104,7 +112,7 @@ public class FriendAddActivity extends AppCompatActivity {
             if(selectedProfile != null) {
                 String userId = selectedProfile.getUserId();
                 String email = selectedProfile.getEmail();
-                viewModel.addFriend(loginEmail, new FriendData(userId, email, false, false));
+                viewModel.addFriend(loginUserId, new FriendData(userId, email, false, false));
             }
             else
                 Toast.makeText(FriendAddActivity.this, "선택된 프로필이 없습니다.", Toast.LENGTH_SHORT).show();

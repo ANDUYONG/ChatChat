@@ -4,23 +4,45 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SignUpData implements Parcelable {
+    private String userId;
     private String email;
+
+    public String getUserId() {
+        return userId;
+    }
+
     private String pwd; // 실제 앱에서는 원본 비밀번호를 객체로 직접 전달하지 않도록 주의하세요.
     // 보통 서버에 전송 후 즉시 지우거나, 해시된 비밀번호를 사용합니다.
     private String birthday; // YYYY-MM-DD 형식으로 저장한다고 가정
     private String tel1;  // 예: "10" (010의 10)
     private String tel2;  // 예: "1234"
     private String tel3;  // 예: "5678" (telPart2가 2개로 나뉘어 있을 경우)
+    private String name; //
+    private String nickName; //
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public String getName() {
+        return name;
+    }
 
     // 1. 생성자: 모든 필드 값을 받아 객체를 초기화합니다.
     public SignUpData(String email, String pwd, String birthday,
-                      String tel1, String tel2, String tel3) {
+                      String tel1, String tel2, String tel3, String name) {
         this.email = email;
         this.pwd = pwd;
         this.birthday = birthday;
         this.tel1 = tel1;
         this.tel2 = tel2;
         this.tel3 = tel3;
+        this.name = name;
+        this.nickName = name;
     }
 
     // 2. 게터(Getters): 객체에 저장된 값을 외부에서 읽을 수 있도록 합니다.
@@ -56,8 +78,11 @@ public class SignUpData implements Parcelable {
 
     protected SignUpData(Parcel in) {
         // 읽는 순서는 쓰는 순서와 정확히 일치해야 합니다.
+        userId = in.readString();
         email = in.readString();
         pwd = in.readString();
+        name = in.readString();
+        nickName = in.readString();
         birthday = in.readString();
         tel1 = in.readString();
         tel2 = in.readString();
@@ -84,8 +109,11 @@ public class SignUpData implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         // 필드들을 Parcel에 쓰는 순서. 이 순서대로 읽어야 합니다.
+        dest.writeString(userId);
         dest.writeString(email);
         dest.writeString(pwd);
+        dest.writeString(name);
+        dest.writeString(nickName);
         dest.writeString(birthday);
         dest.writeString(tel1);
         dest.writeString(tel2);
@@ -96,8 +124,11 @@ public class SignUpData implements Parcelable {
     @Override
     public String toString() {
         return "SignUpData{" +
+                "userId='" + userId + '\'' +
                 "email='" + email + '\'' +
                 ", pwd='" + "[REDACTED]" + '\'' + // 비밀번호는 로그에 노출하지 않도록 주의
+                ", name='" + name + '\'' +
+                ", nickName='" + nickName + '\'' +
                 ", birthday='" + birthday + '\'' +
                 ", tel='" + tel1 + "-" + tel2 + "-" + tel3 + '\'' +
                 '}';

@@ -43,6 +43,8 @@ public class LoginViewModel extends ViewModel {
                         .findFirst()
                         .orElse(null); // 일치하는 첫 번째 사용자를 찾습니다.
                 user.setValue(authenticatedUser);
+
+                authenticatedUser.getUserId();
             }
 
             @Override
