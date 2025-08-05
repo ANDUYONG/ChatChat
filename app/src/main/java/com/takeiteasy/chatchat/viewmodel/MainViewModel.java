@@ -14,16 +14,19 @@ import com.takeiteasy.chatchat.model.profile.repository.ProfileRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MainViewModel extends ViewModel {
     private MutableLiveData<List<ProfileData>> profiles;
+    private MutableLiveData<ProfileData> profile;
     private MutableLiveData<ReponseStatus> status;
     private List<ProfileData> originalProfiles; // 필터링을 위한 원본 데이터
     private ProfileRepository repository;
 
     public MainViewModel() {
         profiles = new MutableLiveData<>();
+        profile = new MutableLiveData<>();
         originalProfiles = new ArrayList<>();
         repository = new ProfileRepository();
         this.status = new MutableLiveData<>();
@@ -33,8 +36,33 @@ public class MainViewModel extends ViewModel {
         return profiles;
     }
 
+    public LiveData<ProfileData> getProfile() {
+        return profile;
+    }
+
     public LiveData<ReponseStatus> getStatus() {
         return status;
+    }
+
+    public void loadProfile(String userId) {
+        // ⭐ ProfileRepository.ProfileLoadListener 사용 및 시그니처 일치 ⭐
+        repository.fetchUser(userId, new ProfileLoadListener() {
+            @Override
+            public void onProfilesLoaded(ProfileData response) {
+                try {
+                    profile.setValue(response); // 검색 결과만 표시
+                } catch (Exception e) {
+                    System.out.println("Exception -> " + e);
+                }
+            }
+
+            @Override
+            public void onProfilesLoadFailed(Exception e) {
+                // 로드 실패 시
+                profile.setValue(null); // 빈 목록으로 설정
+                status.setValue(ReponseStatus.FAILURE); // 상태 업데이트
+            }
+        });
     }
 
     public void loadProfiles(String userId) {
@@ -54,6 +82,25 @@ public class MainViewModel extends ViewModel {
                 // 로드 실패 시
                 profiles.setValue(new ArrayList<>()); // 빈 목록으로 설정
                 status.setValue(ReponseStatus.FAILURE); // 상태 업데이트
+            }
+        });
+    }
+
+    public void setProfile(String userId, Map<String, Object> updates) {
+        // ⭐ ProfileRepository.ProfileLoadListener 사용 및 시그니처 일치 ⭐
+        repository.updateProfile(userId, updates, new ProfileSetListener() {
+            @Override
+            public void onComplete(ReponseStatus reponse) {
+                status.setValue(reponse);
+
+                if(ReponseStatus.SUCCESS == reponse) {
+                    loadProfile(userId);
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                status.setValue(ReponseStatus.FAILURE);
             }
         });
     }

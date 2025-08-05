@@ -95,13 +95,10 @@ public class MainActivity extends AppCompatActivity {
             if (profileListAdapter != null) {
                 profileListAdapter.setProfileDatas(profileList);
             } else {
-                profileListAdapter = new ProfileDataListAdapter(profileList);
+                profileListAdapter = new ProfileDataListAdapter(this, profileList);
                 profileView.setAdapter(profileListAdapter);
             }
         });
-
-        // 현재 Activity를 시작시킨 Intent 가져오기
-        viewModel.loadProfiles(loginUserId);
 
         searchEditText.setOnTouchListener((v, event) -> {
             // 돋보기 아이콘(drawableEnd)이 클릭되었는지 확인
@@ -157,19 +154,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        SharedPreferences.Editor editor = preferenceManager.edit();
-        editor.clear(); // 모든 키-값 쌍 삭제
-        editor.apply();
+//        SharedPreferences.Editor editor = preferenceManager.edit();
+//        editor.clear(); // 모든 키-값 쌍 삭제
+//        editor.apply();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (isFirstLaunch) {
-            isFirstLaunch = false;
-        } else {
-            viewModel.loadProfiles(loginUserId);
-        }
+        viewModel.loadProfiles(loginUserId);
     }
 
     // 화면 회전 시 isFirstLaunch가 재설정되는 것을 방지하려면

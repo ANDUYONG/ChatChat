@@ -17,6 +17,15 @@ public class ProfileData implements Parcelable {
     private String tel1; // 전화번호 (SignUpData의 phone1-phone2-phone3이 합쳐진 형태일 수 있음)
     private String tel2;
     private String tel3;
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    public void setStatusMsg(String statusMsg) {
+        this.statusMsg = statusMsg;
+    }
+
     private String name; // 본명
     private String birth;
     private String profileUrl; // 프로필 사진 URL

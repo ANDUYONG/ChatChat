@@ -82,7 +82,7 @@ public class FriendAddActivity extends AppCompatActivity {
             if (profileListAdapter != null) {
                 profileListAdapter.setProfileDatas(profileList);
             } else {
-                profileListAdapter = new ProfileDataListAdapter(profileList, (profile, position) -> {
+                profileListAdapter = new ProfileDataListAdapter(this, profileList, (profile, position) -> {
                     selectedProfile = profile;
                 });
                 profileView.setAdapter(profileListAdapter);

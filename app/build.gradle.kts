@@ -78,7 +78,10 @@ dependencies {
     // BoM 버전만 지정하면 호환되는 최신 버전들이 자동으로 적용됩니다.
     // 현재 (2025년 7월 29일) Firebase BoM의 최신 안정화 버전을 꼭 확인하여 업데이트하세요.
     // (예: 33.0.0은 예전 버전일 수 있습니다.)
-    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    // Firebase UI for Storage (Glide와 Firebase Storage 연결)
+    implementation("com.firebaseui:firebase-ui-storage:8.0.2") // BoM 버전과 호환되는지 확인
+
 
     // 사용할 Firebase 서비스에 대한 종속성을 추가합니다.
     // Java 프로젝트이므로 일반적으로 '-ktx' 접미사가 없는 버전을 사용합니다.
@@ -89,7 +92,7 @@ dependencies {
 
     // 필요한 경우 다른 Firebase 서비스도 여기에 추가하세요:
      implementation("com.google.firebase:firebase-auth")       // Firebase 인증
-    // implementation("com.google.firebase:firebase-storage")     // Firebase Cloud Storage
+     implementation("com.google.firebase:firebase-storage")     // Firebase Cloud Storage
     // implementation("com.google.firebase:firebase-messaging")   // Firebase Cloud Messaging (FCM)
     // implementation("com.google.firebase:firebase-database")    // Firebase Realtime Database
     /* 추가 */

@@ -4,10 +4,13 @@ import static android.content.ContentValues.TAG;
 
 import android.os.Parcelable;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -23,7 +26,9 @@ import com.takeiteasy.chatchat.model.profile.ProfileSetListener;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,6 +47,20 @@ public class ProfileRepository {
         void onProfilesLoadFailed(Exception e);
     }
 
+    public void fetchUser(String userId,  ProfileLoadListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        ProfileData prfile = this.getProfile(task);
+                        if(prfile == null) return;
+                        listener.onProfilesLoaded(prfile);
+                    }
+                }).addOnFailureListener(e -> {
+                    FirebaseCrashlytics.getInstance().recordException(e);
+                });
+    }
 
     public void fetchUsers(String userId,  FriendLoadedListener listener) { // 데이터를 직접 리턴하지 않고 리스너를 통해 전달
         db.collection("users")
@@ -148,6 +167,33 @@ public class ProfileRepository {
                 }).addOnFailureListener(e -> {
                     FirebaseCrashlytics.getInstance().recordException(e);
                 });;
+    }
+
+    public void updateProfile(String userId, Map<String, Object> updates, ProfileSetListener listener) {
+        // Firestore 인스턴스 가져오기
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // "users" 컬렉션에서 특정 userId를 가진 문서 참조
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        // update() 메서드를 사용하여 필드 덮어쓰기
+        userRef.update(updates)
+                .addOnSuccessListener(aVoid -> {
+//                    frameLayoutOverlay.setVisibility(View.GONE); // 오버레이 숨김
+//                    currentEditingField = EDIT_NONE; // 편집 모드 초기화
+//                    editTextOverlayInput.setText(""); // EditText 내용 초기화
+
+                    // TODO: 여기서 변경된 프로필 데이터를 서버에 저장하거나 로컬 데이터베이스에 업데이트하는 로직을 추가해야 합니다.
+                    // 예: updateProfileOnServer(newText, currentEditingField);
+
+//                    Toast.makeText(this, "변경사항이 저장되었습니다.", Toast.LENGTH_SHORT).show();
+
+                    listener.onComplete(ReponseStatus.SUCCESS);
+                })
+                .addOnFailureListener(e -> {
+//                    Toast.makeText(this, "정보 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    listener.onFailed(e);
+                });
     }
 
     private ProfileData getProfile(Task<DocumentSnapshot> task) {

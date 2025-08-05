@@ -1,5 +1,6 @@
 package com.takeiteasy.chatchat.model.profile.adapter;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Parcelable;
 import android.view.LayoutInflater;
@@ -15,13 +16,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bumptech.glide.Glide;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.takeiteasy.chatchat.ProfileDetailActivity;
 import com.takeiteasy.chatchat.R; // R.layout.item_friend를 사용하기 위해 임포트
 import com.takeiteasy.chatchat.model.profile.ProfileData; // Profile 데이터 클래스 임포트
 
 // 어댑터 이름도 ProfileDataListAdapter로 변경
 public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataListAdapter.ProfileDataViewHolder> {
-
+    private final Context context;
     private List<ProfileData> ProfileDataList; // ProfileData 객체 리스트
     private OnItemClickListener listener = null; // 새롭게 추가된 클릭 리스너 인터페이스
 
@@ -29,12 +33,14 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
         void onItemClick(ProfileData profile, int position);
     }
 
-    public ProfileDataListAdapter(List<ProfileData> ProfileDataList) {
+    public ProfileDataListAdapter(Context context, List<ProfileData> ProfileDataList) {
+        this.context = context;
         this.ProfileDataList = ProfileDataList;
         this.listener = listener;
     }
 
-    public ProfileDataListAdapter(List<ProfileData> ProfileDataList, OnItemClickListener listener) {
+    public ProfileDataListAdapter(Context context, List<ProfileData> ProfileDataList, OnItemClickListener listener) {
+        this.context = context;
         this.ProfileDataList = ProfileDataList;
         this.listener = listener;
     }
@@ -82,6 +88,23 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
         // 여기서는 예시로 기본 이미지를 사용하거나, URL이 있다면 로딩 라이브러리를 통해 로드합니다.
         if (ProfileData.getProfileUrl() != null && !ProfileData.getProfileUrl().isEmpty()) {
             // TODO: Glide나 Picasso 같은 라이브러리를 사용하여 이미지 로드
+            // 이것은 Firebase Storage에서 가져올 원격 이미지입니다.
+            String imageUri = ProfileData.getProfileUrl();
+
+            // Firebase Storage 인스턴스와 참조를 가져옵니다.
+            StorageReference imageRef = FirebaseStorage.getInstance().getReference().child(imageUri);
+
+            // 다운로드 URL을 가져옵니다.
+            imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                // Glide를 사용하여 URL로부터 원격 이미지를 로드합니다.
+                Glide.with(context)
+                        .load(uri)
+                        .into(holder.profileImageView);
+            }).addOnFailureListener(exception -> {
+                // 오류를 처리합니다 (예: 로컬 리소스의 기본 이미지를 설정).
+                System.err.println("이미지 다운로드 URL을 가져오는 데 실패했습니다: " + exception.getMessage());
+                // 필요하다면, 여기서 대체 이미지를 설정할 수 있습니다.
+            });
 
             // 예: Glide.with(holder.ProfileDataImageView.getContext()).load(ProfileData.getProfileDataUrl()).into(holder.ProfileDataImageView);
         } else {

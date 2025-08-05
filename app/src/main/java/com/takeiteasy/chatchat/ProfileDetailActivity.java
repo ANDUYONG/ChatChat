@@ -1,7 +1,9 @@
 package com.takeiteasy.chatchat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -13,13 +15,25 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.takeiteasy.chatchat.helper.IntentHelper;
 import com.takeiteasy.chatchat.model.profile.ProfileData;
+import com.takeiteasy.chatchat.model.profile.adapter.ProfileDataListAdapter;
 import com.takeiteasy.chatchat.model.signup.SignUpData;
+import com.takeiteasy.chatchat.viewmodel.MainViewModel;
+
+import java.util.ArrayList;
 
 public class ProfileDetailActivity extends AppCompatActivity {
+    private FirebaseStorage storage;
+    private SharedPreferences preferenceManager;
+    private String loginUserId; // = preferenceManager.getString("userId", null);
+    private MainViewModel viewModel;
+    private ProfileData profile;
     private ImageView profileView;
     private ImageView profileViewClose;
     private ImageView profileViewBackground;
@@ -47,50 +61,28 @@ public class ProfileDetailActivity extends AppCompatActivity {
         textViewUserName = findViewById(R.id.textViewUserName);
         textViewStatusMessage = findViewById(R.id.textViewStatusMessage);
 
-        Intent intent = getIntent();
-        ProfileData profile = IntentHelper.getExtra(getIntent(), "profileData", ProfileData.class);
-        if (profile != null) {
+        // 친구 목록 받아오기
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        // ViewModel의 LiveData를 관찰하여 데이터가 변경될 때 UI 업데이트
+        viewModel.getProfile().observe(this, response -> {
+            profile = response;
+            if (profile != null) {
+                if(!loginUserId.equals(profile.getUserId())) {
+                    // LinearLayout을 보이지 않게 하지만, 공간은 그대로 유지합니다.
+                    layoutEditProfile.setVisibility(View.INVISIBLE);
+                }
 
-           // 받은 데이터를 UI에 표시하거나 추가 처리 (예: 서버로 전송)
-            // 1. 조회된 사용자 이름
-            textViewUserName.setText(profile.getNickName());
-            // 2. 사용자 상메
-            textViewStatusMessage.setText(profile.getStatusMsg());
-            // 3. 이미지 url 바인딩
-            // Glide를 사용하여 이미지 URL을 profileView에 로드합니다.
-            // with(context): 이미지를 로드할 컨텍스트를 제공합니다. (Activity, Fragment, Context 등)
-            // load(imageUrl): 로드할 이미지의 URL을 지정합니다.
-            // placeholder(drawableResId): 이미지가 로드되는 동안 표시될 기본 이미지(로딩 이미지)를 설정합니다.
-            // error(drawableResId): 이미지 로드 실패 시 표시될 이미지를 설정합니다.
-            // into(imageView): 이미지를 표시할 ImageView를 지정합니다.
-            String imageUrl = null; // 예시 이미지 URL
-            Glide.with(this)
-                    .load(imageUrl)
-                    .placeholder(R.drawable.ic_default_profile_filled) // 로딩 중 표시될 이미지 (기존 기본 프로필 이미지)
-                    .error(R.drawable.ic_default_profile_filled) // 로드 실패 시 표시될 이미지 (예시: 오류 아이콘)
-                    .into(profileView);
+                // 받은 데이터를 UI에 표시하거나 추가 처리 (예: 서버로 전송)
+                // 1. 조회된 사용자 이름
+                textViewUserName.setText(profile.getNickName());
+                // 2. 사용자 상메
+                textViewStatusMessage.setText(profile.getStatusMsg());
+                // 3. 이미지 url 바인딩
+                this.loadImage(profileView);
+                this.loadImage(profileViewBackground);
 
-            // 만약 이미지 URL이 null이거나 비어있을 경우, 기본 이미지를 설정할 수 있습니다.
-            if (imageUrl == null || imageUrl.isEmpty()) {
-                profileView.setImageResource(R.drawable.ic_default_profile_filled);
             }
-
-            // 4. 배경화면 urls 바인딩
-            String backgroundUrl = null; // 예시 이미지 URL
-            Glide.with(this)
-                    .load(backgroundUrl)
-                    .placeholder(R.drawable.default_profile_background) // 로딩 중 표시될 이미지 (기존 기본 프로필 이미지)
-                    .error(R.drawable.default_profile_background) // 로드 실패 시 표시될 이미지 (예시: 오류 아이콘)
-                    .into(profileViewBackground);
-
-            // 만약 이미지 URL이 null이거나 비어있을 경우, 기본 이미지를 설정할 수 있습니다.
-            if (backgroundUrl == null || backgroundUrl.isEmpty()) {
-                profileViewBackground.setImageResource(R.drawable.default_profile_background);
-            }
-
-        } else {
-            Toast.makeText(this, "회원가입 데이터를 받지 못했습니다.", Toast.LENGTH_SHORT).show();
-        }
+        });
 
         // 닫기 > 친구목록으로 이동
         profileViewClose.setOnClickListener(v -> {
@@ -107,7 +99,7 @@ public class ProfileDetailActivity extends AppCompatActivity {
         // 2. 프로필 배경 상세로 이동
         profileViewBackground.setOnClickListener(v -> {
             Intent profileViewBackgroundIntent = new Intent(ProfileDetailActivity.this, ProfileBackgroundActivity.class);
-            profileViewBackgroundIntent.putExtra("backgroundUrls", profile.getBackgroundUrls().toArray());
+            profileViewBackgroundIntent.putStringArrayListExtra("backgroundUrls", (ArrayList<String>) profile.getBackgroundUrls());
             startActivity(profileViewBackgroundIntent);
         });
 
@@ -143,5 +135,80 @@ public class ProfileDetailActivity extends AppCompatActivity {
                 // Log.d("ProfileDetailActivity", "프로필 편집 버튼 클릭됨");
             }
         });
+    }
+
+    private void loadImage(ImageView imageView) {
+        // 이것은 로컬 벡터 드로어블입니다.
+        // 안드로이드 내장 기능을 사용해 이미지를 직접 설정합니다.
+        // 이것은 Firebase Storage에서 가져올 원격 이미지입니다.
+        if(profile.getProfileUrl() != null && !profile.getProfileUrl().isEmpty()) {
+            String imageUri = "default_profile_background.png";
+            if (profileView.getId() == imageView.getId()) {
+                imageUri = profile.getProfileUrl();
+            } else {
+                int size = profile.getBackgroundUrls().size();
+                if(profile.getBackgroundUrls() != null && size > 0) {
+                    imageUri = profile.getBackgroundUrls().get(size-1);
+                }
+            }
+            // Firebase Storage 인스턴스와 참조를 가져옵니다.
+            StorageReference imageRef = FirebaseStorage.getInstance().getReference().child(imageUri);
+
+            // 다운로드 URL을 가져옵니다.
+            imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                // Glide를 사용하여 URL로부터 원격 이미지를 로드합니다.
+                Glide.with(this)
+                        .load(uri)
+                        .into(imageView);
+            }).addOnFailureListener(exception -> {
+                // 오류를 처리합니다 (예: 로컬 리소스의 기본 이미지를 설정).
+                System.err.println("이미지 다운로드 URL을 가져오는 데 실패했습니다: " + exception.getMessage());
+                // 필요하다면, 여기서 대체 이미지를 설정할 수 있습니다.
+            });
+        } else {
+            if (profileView.getId() == imageView.getId()) {
+                imageView.setImageResource(R.drawable.ic_default_profile_filled);
+            } else {
+                imageView.setImageResource(R.drawable.default_profile_background);
+            }
+        }
+    }
+
+    private void loadBackground(ImageView imageView) {
+        // Firebase Storage 인스턴스 가져오기
+        storage = FirebaseStorage.getInstance();
+        // 이미지를 로드할 Storage 참조 생성
+        // "images/my_profile_pic.jpg"는 Firebase Storage에 업로드된 이미지의 경로입니다.
+//        ic_default_profile_filled
+        String imageUri = "chatchat/default/default_profile.png";
+//        if(profileView.getId() == imageView.getId()) {
+//            imageUri = "";
+//        }
+        StorageReference imageRef = storage.getReference().child(imageUri);
+
+
+        // 다운로드 URL 가져오기
+        imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+            // URL을 성공적으로 가져온 경우
+            // Glide를 사용하여 이미지를 ImageView에 로드
+            Glide.with(this)
+                    .load(uri) // ✨ HTTPS URL (Uri 객체)을 전달
+                    .into(imageView);
+        }).addOnFailureListener(exception -> {
+            // URL 가져오기 실패 (예: 파일이 없거나, 권한 문제)
+            System.err.println("이미지 다운로드 URL 가져오기 실패: " + exception.getMessage());
+            // 오류 이미지를 표시하거나 사용자에게 알림
+        });
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        preferenceManager = PreferenceManager.getDefaultSharedPreferences(ProfileDetailActivity.this);
+        Intent intent = getIntent();
+        profile = intent.getParcelableExtra("profileData");
+        loginUserId = profile.getUserId();
+        viewModel.loadProfile(loginUserId);
     }
 }

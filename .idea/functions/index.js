@@ -89,3 +89,144 @@ exports.createProfileForNewUser = onDocumentCreated(
         return null; // 에러가 발생했더라도 함수는 종료 (Cloud Functions가 재시도할 수 있음)
       }
     });
+
+
+/**
+ * 'users' 컬렉션의 문서가 업데이트될 때마다 트리거되는 함수입니다.
+ * profileUrl 또는 backgroundUrls가 변경되면 'profiles' 컬렉션에 해당 필드를 업데이트합니다.
+ */
+const {onDocumentUpdated} = require("firebase-functions/v2/firestore");
+
+exports.updateProfileFromUser = onDocumentUpdated(
+    "users/{userId}", async (event) => {
+      const change = event.data;
+      if (!change) {
+        logger.error("No data associated with the event.");
+        return;
+      }
+
+      const userId = event.params.userId;
+      const beforeData = change.before.data(); // 업데이트 전 데이터
+      const afterData = change.after.data(); // 업데이트 후 데이터
+
+      logger.info(`User document updated for ID: ${userId}`);
+
+      // 1. 업데이트할 필드들을 담을 객체 초기화
+      const updateData = {};
+
+      // 2. profileUrl 필드의 변경 여부 확인
+      if (beforeData.profileUrl !== afterData.profileUrl) {
+        logger.info(`profileUrl changed for user ${userId}.`);
+        updateData.profileUrl = afterData.profileUrl;
+      }
+
+      // 3. backgroundUrls 필드의 변경 여부 확인
+      // 배열은 직접 비교가 어려우므로 JSON.stringify를 통해 비교합니다.
+      if (JSON.stringify(beforeData.backgroundUrls) !==
+          JSON.stringify(afterData.backgroundUrls)) {
+        logger.info(`backgroundUrls changed for user ${userId}.`);
+        updateData.backgroundUrls = afterData.backgroundUrls;
+      }
+
+      // 4. 변경 사항이 있을 경우에만 Firestore 업데이트
+      if (Object.keys(updateData).length > 0) {
+        try {
+          await admin.firestore()
+              .collection("profiles")
+              .doc(userId)
+              .update(updateData);
+          logger.info(`Profiles collection updated for user ${userId}.`,
+              updateData);
+        } catch (error) {
+          logger.error(`Error updating profiles collection for user ${userId}:`,
+              error);
+        }
+      } else {
+        logger.info(`${userId}. No update needed.`);
+      }
+
+      return null;
+    });
+
+/**
+ * Import function triggers for scheduled tasks.
+ */
+const {onSchedule} = require("firebase-functions/v2/scheduler");
+
+/**
+ * 매일 오후 7시(19:00)에 실행되는 예약 함수입니다. (한국 시간)
+ * Firebase Storage에만 존재하고 Firestore에 없는 파일을 삭제합니다.
+ */
+exports.cleanUpOrphanedStorageImages = onSchedule({
+  schedule: "every day 18:23",
+  timeZone: "Asia/Seoul", // 한국 시간(KST)으로 설정
+}, async (event) => {
+  logger.info("Starting scheduled orphaned image cleanup task in Storage.");
+
+  const db = admin.firestore();
+  const bucket = admin.storage().bucket();
+  const prefix = "chatchat/profiles"; // 프로필 이미지 저장 경로
+
+  try {
+    // 1. Firestore의 모든 유저 문서에서 사용 중인 모든 파일 경로를 Set에 저장
+    const usersSnapshot = await db.collection("users").get();
+    const usedFilePaths = new Set(); // 중복을 피하기 위해 Set 사용
+
+    usersSnapshot.forEach((doc) => {
+      const userData = doc.data();
+
+      // profileUrl에서 파일 경로 추출 후 Set에 추가
+      if (userData.profileUrl && userData.profileUrl !== "") {
+        const filePath = getFilePathFromUrl(userData.profileUrl);
+        if (filePath) usedFilePaths.add(filePath);
+      }
+
+      // backgroundUrls 배열에서 파일 경로 추출 후 Set에 추가
+      if (Array.isArray(userData.backgroundUrls)) {
+        userData.backgroundUrls.forEach((url) => {
+          const filePath = getFilePathFromUrl(url);
+          if (filePath) usedFilePaths.add(filePath);
+        });
+      }
+    });
+
+    // 2. Storage의 특정 경로에 있는 모든 파일 목록 가져오기
+    const [files] = await bucket.getFiles({prefix: prefix});
+    logger.info(`Found ${files.length} files in Storage.`);
+
+    // 3. Storage의 각 파일 경로가 Firestore의 Set에 있는지 확인
+    for (const file of files) {
+      const storageFilePath = file.name;
+
+      // Firestore의 파일 경로 목록에 Storage 파일 경로가 포함되어 있는지 확인
+      if (!usedFilePaths.has(storageFilePath)) {
+        logger.info(`File '${storageFilePath}' not found`);
+        await file.delete();
+      } else {
+        logger.info(`File '${storageFilePath}' found in Firestore. Keeping.`);
+      }
+    }
+    logger.info("Orphaned image cleanup task finished successfully.");
+  } catch (error) {
+    logger.error("An error occurred during the cleanup task:", error);
+  }
+});
+
+/**
+ * Firebase Storage 다운로드 URL에서 파일 경로를 추출하는 헬퍼 함수
+ * @param {string} url Firebase Storage 다운로드 URL
+ * @return {string} 파일 경로 (예: 'chatchat/profiles/userId/image.jpg')
+ */
+function getFilePathFromUrl(url) {
+  // URL에서 'o/' 이후의 경로를 추출
+  const pathStartIndex = url.indexOf("/o/") + 3;
+  if (pathStartIndex < 3) return "";
+
+  const pathEndIndex = url.indexOf("?alt=media");
+  if (pathEndIndex === -1) return "";
+
+  const filePath = url.substring(pathStartIndex, pathEndIndex);
+
+  // URL 인코딩된 문자열을 디코딩
+  return decodeURIComponent(filePath);
+}

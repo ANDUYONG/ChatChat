@@ -62,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
                 editor.putString("userId", response.getUserId());
                 editor.putString("email", response.getEmail());
 
-                editor.apply(); // 비동기적으로 저장
+                editor.commit(); // 동기적으로 저장
 
                 // MainActivity로 화면 전환
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
