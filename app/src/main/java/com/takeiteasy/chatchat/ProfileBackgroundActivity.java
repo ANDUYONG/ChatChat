@@ -22,7 +22,6 @@ import java.util.List;
 
 public class ProfileBackgroundActivity extends AppCompatActivity {
 
-    private FirebaseStorage storage;
     private ImageView imageViewClose;
     private ImageView imageViewGalleryThumbnail;
     private ViewPager2 viewPagerProfileImages;
@@ -48,8 +47,6 @@ public class ProfileBackgroundActivity extends AppCompatActivity {
         imageViewClose.setOnClickListener(v -> {
             finish();
         });
-
-
 
         Intent intent = getIntent();
 
@@ -77,7 +74,7 @@ public class ProfileBackgroundActivity extends AppCompatActivity {
 
     private void loadThumbNail(ImageView imageView, String imgUri) {
         // Firebase Storage 인스턴스 가져오기
-        storage = FirebaseStorage.getInstance();
+        FirebaseStorage storage = FirebaseStorage.getInstance();
         // 이미지를 로드할 Storage 참조 생성
         // "images/my_profile_pic.jpg"는 Firebase Storage에 업로드된 이미지의 경로입니다.
         StorageReference imageRef = storage.getReference().child(imgUri);

@@ -158,7 +158,7 @@ const {onSchedule} = require("firebase-functions/v2/scheduler");
  * Firebase Storage에만 존재하고 Firestore에 없는 파일을 삭제합니다.
  */
 exports.cleanUpOrphanedStorageImages = onSchedule({
-  schedule: "every day 18:23",
+  schedule: "every day 13:19",
   timeZone: "Asia/Seoul", // 한국 시간(KST)으로 설정
 }, async (event) => {
   logger.info("Starting scheduled orphaned image cleanup task in Storage.");
@@ -177,15 +177,13 @@ exports.cleanUpOrphanedStorageImages = onSchedule({
 
       // profileUrl에서 파일 경로 추출 후 Set에 추가
       if (userData.profileUrl && userData.profileUrl !== "") {
-        const filePath = getFilePathFromUrl(userData.profileUrl);
-        if (filePath) usedFilePaths.add(filePath);
+        if (userData.profileUrl) usedFilePaths.add(userData.profileUrl);
       }
 
       // backgroundUrls 배열에서 파일 경로 추출 후 Set에 추가
       if (Array.isArray(userData.backgroundUrls)) {
         userData.backgroundUrls.forEach((url) => {
-          const filePath = getFilePathFromUrl(url);
-          if (filePath) usedFilePaths.add(filePath);
+          if (userData.profileUrl) usedFilePaths.add(url);
         });
       }
     });
@@ -211,22 +209,3 @@ exports.cleanUpOrphanedStorageImages = onSchedule({
     logger.error("An error occurred during the cleanup task:", error);
   }
 });
-
-/**
- * Firebase Storage 다운로드 URL에서 파일 경로를 추출하는 헬퍼 함수
- * @param {string} url Firebase Storage 다운로드 URL
- * @return {string} 파일 경로 (예: 'chatchat/profiles/userId/image.jpg')
- */
-function getFilePathFromUrl(url) {
-  // URL에서 'o/' 이후의 경로를 추출
-  const pathStartIndex = url.indexOf("/o/") + 3;
-  if (pathStartIndex < 3) return "";
-
-  const pathEndIndex = url.indexOf("?alt=media");
-  if (pathEndIndex === -1) return "";
-
-  const filePath = url.substring(pathStartIndex, pathEndIndex);
-
-  // URL 인코딩된 문자열을 디코딩
-  return decodeURIComponent(filePath);
-}

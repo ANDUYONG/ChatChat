@@ -40,6 +40,10 @@ public class MainViewModel extends ViewModel {
         return profile;
     }
 
+    public void setProfile(ProfileData setData) {
+        profile.setValue(setData);
+    }
+
     public LiveData<ReponseStatus> getStatus() {
         return status;
     }
