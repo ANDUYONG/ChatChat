@@ -7,15 +7,10 @@ import android.view.View;
 
 import com.takeiteasy.chatchat.ChatRoomActivity;
 import com.takeiteasy.chatchat.ProfileBackgroundActivity;
-import com.takeiteasy.chatchat.ProfileDetailActivity;
 import com.takeiteasy.chatchat.ProfileEditActivity;
 import com.takeiteasy.chatchat.ProfileImageActivity;
-import com.takeiteasy.chatchat.R;
-import com.takeiteasy.chatchat.databinding.ActivityLoginBinding;
 import com.takeiteasy.chatchat.databinding.ActivityProfileDetailBinding;
-import com.takeiteasy.chatchat.funtional.Action;
 import com.takeiteasy.chatchat.model.profile.ProfileData;
-import com.takeiteasy.chatchat.viewmodel.LoginViewModel;
 import com.takeiteasy.chatchat.viewmodel.MainViewModel;
 
 import java.util.ArrayList;
@@ -69,6 +64,7 @@ public class ProfileDetailListener {
         binding.layoutEditProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                profile = viewModel.getProfile().getValue();
                 Intent profileEditIntent = new Intent(context,  ProfileEditActivity.class);
                 profileEditIntent.putExtra("profileData", profile); // ProfileData 객체를 Intent에 담아 전달
                 context.startActivity(profileEditIntent);

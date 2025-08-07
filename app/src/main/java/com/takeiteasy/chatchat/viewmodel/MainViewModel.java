@@ -54,7 +54,7 @@ public class MainViewModel extends ViewModel {
             @Override
             public void onProfilesLoaded(ProfileData response) {
                 try {
-                    profile.setValue(response); // 검색 결과만 표시
+                    profile.postValue(response); // 검색 결과만 표시
                 } catch (Exception e) {
                     System.out.println("Exception -> " + e);
                 }
@@ -63,8 +63,8 @@ public class MainViewModel extends ViewModel {
             @Override
             public void onProfilesLoadFailed(Exception e) {
                 // 로드 실패 시
-                profile.setValue(null); // 빈 목록으로 설정
-                status.setValue(ReponseStatus.FAILURE); // 상태 업데이트
+                profile.postValue(null); // 빈 목록으로 설정
+                status.postValue(ReponseStatus.FAILURE); // 상태 업데이트
             }
         });
     }
@@ -75,17 +75,17 @@ public class MainViewModel extends ViewModel {
             @Override
             public void onBatchProfilesLoaded(List<ProfileData> friendProfiles) {
                 if(friendProfiles != null) {
-                    profiles.setValue(friendProfiles); // 검색 결과만 표시
+                    profiles.postValue(friendProfiles); // 검색 결과만 표시
                 } else {
-                    profiles.setValue(new ArrayList<>()); // ViewModel의 LiveData 업데이트 (결과 없음)
+                    profiles.postValue(new ArrayList<>()); // ViewModel의 LiveData 업데이트 (결과 없음)
                 }
             }
 
             @Override
             public void onBatchProfilesLoadFailed(Exception e) {
                 // 로드 실패 시
-                profiles.setValue(new ArrayList<>()); // 빈 목록으로 설정
-                status.setValue(ReponseStatus.FAILURE); // 상태 업데이트
+                profiles.postValue(new ArrayList<>()); // 빈 목록으로 설정
+                status.postValue(ReponseStatus.FAILURE); // 상태 업데이트
             }
         });
     }
@@ -95,7 +95,7 @@ public class MainViewModel extends ViewModel {
         repository.updateProfile(userId, updates, new ProfileSetListener() {
             @Override
             public void onComplete(ReponseStatus reponse) {
-                status.setValue(reponse);
+                status.postValue(reponse);
 
                 if(ReponseStatus.SUCCESS == reponse) {
                     loadProfile(userId);
@@ -104,7 +104,7 @@ public class MainViewModel extends ViewModel {
 
             @Override
             public void onFailed(Exception e) {
-                status.setValue(ReponseStatus.FAILURE);
+                status.postValue(ReponseStatus.FAILURE);
             }
         });
     }
@@ -116,31 +116,31 @@ public class MainViewModel extends ViewModel {
             public void onProfilesLoaded(ProfileData profileData) {
                 List<ProfileData> profile = new ArrayList<>();
                 profile.add(profileData);
-                profiles.setValue(profile);
+                profiles.postValue(profile);
             }
 
             @Override
             public void onProfilesLoadFailed(Exception e) {
                 List<ProfileData> profile = new ArrayList<>();
-                profiles.setValue(profile);
+                profiles.postValue(profile);
             }
         });
     }
 
     public void filterProfiles(String value) {
         if (originalProfiles == null || originalProfiles.isEmpty()) {
-            profiles.setValue(new ArrayList<>());
+            profiles.postValue(new ArrayList<>());
             return;
         }
 
         if (value.trim().isEmpty()) {
-            profiles.setValue(new ArrayList<>(originalProfiles));
+            profiles.postValue(new ArrayList<>(originalProfiles));
         } else {
             List<ProfileData> results = originalProfiles
                     .stream()
                     .filter(x -> x.getNickName().toLowerCase().contains(value.toLowerCase())) // 대소문자 구분 없이 검색
                     .collect(Collectors.toList());
-            profiles.setValue(results);
+            profiles.postValue(results);
         }
     }
 
