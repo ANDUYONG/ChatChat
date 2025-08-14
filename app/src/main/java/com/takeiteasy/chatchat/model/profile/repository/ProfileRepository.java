@@ -166,7 +166,7 @@ public class ProfileRepository {
                     }
                 }).addOnFailureListener(e -> {
                     FirebaseCrashlytics.getInstance().recordException(e);
-                });;
+                });
     }
 
     public void updateProfile(String userId, Map<String, Object> updates, ProfileSetListener listener) {

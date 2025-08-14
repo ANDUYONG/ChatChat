@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.annotation)
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -94,7 +95,10 @@ dependencies {
     // 필요한 경우 다른 Firebase 서비스도 여기에 추가하세요:
      implementation("com.google.firebase:firebase-auth")       // Firebase 인증
      implementation("com.google.firebase:firebase-storage")     // Firebase Cloud Storage
-    // implementation("com.google.firebase:firebase-messaging")   // Firebase Cloud Messaging (FCM)
+     implementation("com.google.firebase:firebase-messaging")   // Firebase Cloud Messaging (FCM)
     // implementation("com.google.firebase:firebase-database")    // Firebase Realtime Database
+
+    // Serailize Utils
+    implementation("org.apache.commons:commons-lang3:3.12.0")
     /* 추가 */
 }

@@ -12,6 +12,9 @@ import com.takeiteasy.chatchat.model.profile.ProfileLoadListener;
 import com.takeiteasy.chatchat.model.profile.ProfileSetListener;
 import com.takeiteasy.chatchat.model.profile.repository.ProfileRepository;
 
+import org.apache.commons.lang3.SerializationUtils;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +39,16 @@ public class MainViewModel extends ViewModel {
         return profiles;
     }
 
+    public void setProfiles(List<ProfileData> dataList) {
+      profiles.postValue(dataList);
+    }
+
     public LiveData<ProfileData> getProfile() {
         return profile;
     }
 
     public void setProfile(ProfileData setData) {
-        profile.setValue(setData);
+        profile.postValue(setData);
     }
 
     public LiveData<ReponseStatus> getStatus() {
@@ -89,6 +96,26 @@ public class MainViewModel extends ViewModel {
             }
         });
     }
+
+  public void loadProfilesForAddChattings(String userId) {
+    // ⭐ ProfileRepository.ProfileLoadListener 사용 및 시그니처 일치 ⭐
+    repository.fetchUsers(userId, new FriendLoadedListener() {
+      @Override
+      public void onBatchProfilesLoaded(List<ProfileData> friendProfiles) {
+        profile.postValue(friendProfiles.remove(0));
+        profiles.postValue(friendProfiles); // 검색 결과만 표시
+//        List<ProfileData> original = (List<ProfileData>) SerializationUtils.clone((Serializable) friendProfiles);
+        originalProfiles.addAll(friendProfiles);
+      }
+
+      @Override
+      public void onBatchProfilesLoadFailed(Exception e) {
+        // 로드 실패 시
+        profiles.postValue(new ArrayList<>()); // 빈 목록으로 설정
+        status.postValue(ReponseStatus.FAILURE); // 상태 업데이트
+      }
+    });
+  }
 
     public void setProfile(String userId, Map<String, Object> updates) {
         // ⭐ ProfileRepository.ProfileLoadListener 사용 및 시그니처 일치 ⭐

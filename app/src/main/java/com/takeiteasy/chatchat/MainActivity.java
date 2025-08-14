@@ -27,6 +27,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.takeiteasy.chatchat.binder.LoginBinder;
 import com.takeiteasy.chatchat.binder.MainBinder;
 import com.takeiteasy.chatchat.databinding.ActivityLoginBinding;
@@ -34,6 +35,7 @@ import com.takeiteasy.chatchat.databinding.ActivityMainBinding;
 import com.takeiteasy.chatchat.helper.IntentHelper;
 import com.takeiteasy.chatchat.listener.LoginListener;
 import com.takeiteasy.chatchat.listener.MainListener;
+import com.takeiteasy.chatchat.model.auth.repository.MessageService;
 import com.takeiteasy.chatchat.model.profile.ProfileData;
 import com.takeiteasy.chatchat.model.profile.adapter.ProfileDataListAdapter;
 import com.takeiteasy.chatchat.model.signup.SignUpData;
@@ -57,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences preferenceManager = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        String loginUserId = preferenceManager.getString("userId", null);
+        MessageService messaging = new MessageService(loginUserId);
 
         // 1. 뷰 바인딩 초기화
         binding = ActivityMainBinding.inflate(getLayoutInflater());

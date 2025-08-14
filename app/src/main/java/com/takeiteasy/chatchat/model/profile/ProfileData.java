@@ -2,6 +2,8 @@ package com.takeiteasy.chatchat.model.profile;
 
 import android.os.Parcel;
 import android.os.Parcelable; // Parcelable 인터페이스를 사용하기 위해 import 합니다.
+
+import java.io.Serializable;
 import java.util.ArrayList; // List를 읽을 때 필요할 수 있습니다.
 import java.util.List;
 
@@ -30,6 +32,7 @@ public class ProfileData implements Parcelable {
     private String birth;
     private String profileUrl; // 프로필 사진 URL
     private List<String> backgroundUrls; // 배경사진 URL 목록
+    private List<String> chattingRooms; // 배경사진 URL 목록
     private String nickName; // 화면상에 표시될 이름 (사용자 닉네임)
     private String statusMsg; // 화면상에 표시될 상태 메시지
     public boolean isSelected = false; // 이 필드를 사용하여 배경색을 변경할 겁니다.
@@ -42,7 +45,7 @@ public class ProfileData implements Parcelable {
 
     // 1. 모든 필드 값을 받아 객체를 초기화하는 생성자입니다.
     public ProfileData(String userId, String email, String tel1, String tel2, String tel3, String name, String birth,
-                       String profileUrl, List<String> backgroundUrls,
+                       String profileUrl, List<String> backgroundUrls, List<String> chattingRooms,
                        String nickName, String statusMsg, List<FriendData> friends) {
 
         this.userId = userId;
@@ -54,6 +57,7 @@ public class ProfileData implements Parcelable {
         this.birth = birth;
         this.profileUrl = profileUrl;
         this.backgroundUrls = backgroundUrls;
+        this.chattingRooms = chattingRooms;
         this.nickName = nickName;
         this.statusMsg = statusMsg;
         this.friends = friends;
@@ -75,7 +79,15 @@ public class ProfileData implements Parcelable {
         return tel2;
     }
 
-    public String getTel3() {
+    public List<String> getChattingRooms() {
+      return chattingRooms;
+    }
+
+    public void setChattingRooms(List<String> chattingRooms) {
+      this.chattingRooms = chattingRooms;
+    }
+
+  public String getTel3() {
         return tel3;
     }
 
@@ -127,6 +139,8 @@ public class ProfileData implements Parcelable {
         // 이 메서드는 내부적으로 새로운 ArrayList를 생성하여 데이터를 채웁니다.
         backgroundUrls = new ArrayList<>(); // 먼저 빈 리스트를 초기화합니다.
         in.readStringList(backgroundUrls); // Parcel에서 읽어온 문자열들을 리스트에 추가합니다.
+        chattingRooms = new ArrayList<>(); // 먼저 빈 리스트를 초기화합니다.
+        in.readStringList(chattingRooms); // Parcel에서 읽어온 문자열들을 리스트에 추가합니다.
         nickName = in.readString();
         statusMsg = in.readString();
         friends = new ArrayList<>();
@@ -186,6 +200,7 @@ public class ProfileData implements Parcelable {
         dest.writeString(profileUrl);
         // List<String>을 Parcel에 쓸 때는 writeStringList()를 사용합니다.
         dest.writeStringList(backgroundUrls);
+        dest.writeStringList(chattingRooms);
         dest.writeString(nickName);
         dest.writeString(statusMsg);
         dest.writeList(friends);
@@ -207,7 +222,8 @@ public class ProfileData implements Parcelable {
                 ", name='" + name + '\'' +
                 ", birth='" + birth + '\'' +
                 ", profileUrl='" + profileUrl + '\'' +
-                ", backgroundUrls=" + backgroundUrls + '\'' +
+                ", backgroundUrls=" + backgroundUrls.toString() + '\'' +
+                ", chattingRooms=" + chattingRooms.toString() + '\'' +
                 ", friends=" + friends +
                 '}';
     }

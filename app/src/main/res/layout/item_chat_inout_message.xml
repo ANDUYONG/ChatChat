@@ -3,21 +3,22 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
   android:layout_width="match_parent"
-  android:layout_height="wrap_content"
-  android:padding="8dp">
+  android:layout_height="30dp">
 
   <TextView
-    android:id="@+id/textViewSentMessage"
+    android:id="@+id/textViewInoutMessage"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/chat_bubble_sent"
-    android:padding="12dp"
+    android:width="250dp"
+    android:background="@color/cardview_shadow_start_color"
     android:maxWidth="250dp"
-    android:text="내가 보낸 메시지 내용"
+    android:text="000님이 000님을 초대하셨습니다."
     android:textColor="@android:color/white"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
+    android:textSize="13dp"
+    android:textAlignment="center"
     app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintHorizontal_bias="1.0" />
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

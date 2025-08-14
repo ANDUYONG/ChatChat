@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
@@ -16,6 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.takeiteasy.chatchat.ChatListActivity;
 import com.takeiteasy.chatchat.FriendAddActivity;
 import com.takeiteasy.chatchat.MainActivity;
@@ -23,6 +27,7 @@ import com.takeiteasy.chatchat.R;
 import com.takeiteasy.chatchat.databinding.ActivityLoginBinding;
 import com.takeiteasy.chatchat.databinding.ActivityMainBinding;
 import com.takeiteasy.chatchat.funtional.Action;
+import com.takeiteasy.chatchat.model.auth.repository.MessageService;
 import com.takeiteasy.chatchat.model.profile.adapter.ProfileDataListAdapter;
 import com.takeiteasy.chatchat.viewmodel.MainViewModel;
 
@@ -38,7 +43,7 @@ public class MainBinder {
 
     public void bind(MainViewModel viewModel, LifecycleOwner lifecycleOwner) {
         RecyclerView profileView = binding.profileView;
-        SharedPreferences preferenceManager = PreferenceManager.getDefaultSharedPreferences(context);
+//        SharedPreferences preferenceManager = PreferenceManager.getDefaultSharedPreferences(context);
         //        String loginUserId = preferenceManager.getString("userId", null);
         //        String loginUserId = preferenceManager.getString("userId", null);
 

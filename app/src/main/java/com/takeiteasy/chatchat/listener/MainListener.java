@@ -3,6 +3,8 @@ package com.takeiteasy.chatchat.listener;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -29,6 +31,8 @@ public class MainListener {
 
     @SuppressLint("ClickableViewAccessibility")
     public void initListeners() {
+        SharedPreferences preferenceManager = PreferenceManager.getDefaultSharedPreferences(context);
+        String loginUserId = preferenceManager.getString("userId", null);
         // 1. 검색바 터치
         binding.searchEditText.setOnTouchListener((v, event) -> {
             // 돋보기 아이콘(drawableEnd)이 클릭되었는지 확인
@@ -67,6 +71,7 @@ public class MainListener {
             if (item.getItemId() == R.id.navigation_chats) { // @menu/bottom_navigation_menu에 정의된 채팅 목록 탭 ID
                 // '채팅 목록' 탭 클릭 시 ChatListActivity로 이동
                 Intent chatListIntent = new Intent(context, ChatListActivity.class);
+                chatListIntent.putExtra("userId", loginUserId);
                 context.startActivity(chatListIntent);
                 // MainActivity를 종료하여 뒤로가기 버튼 시 채팅 목록 -> 홈 화면으로 가게 할 수 있습니다. (선택 사항)
 //                finish();

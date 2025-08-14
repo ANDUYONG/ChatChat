@@ -36,7 +36,6 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
     public ProfileDataListAdapter(Context context, List<ProfileData> ProfileDataList) {
         this.context = context;
         this.ProfileDataList = ProfileDataList;
-        this.listener = listener;
     }
 
     public ProfileDataListAdapter(Context context, List<ProfileData> ProfileDataList, OnItemClickListener listener) {
@@ -135,7 +134,7 @@ public class ProfileDataListAdapter extends RecyclerView.Adapter<ProfileDataList
                 // TODO: 친구 항목 클릭 시 동작 정의 (예: 친구 프로필 화면으로 이동)
 //            // 현재 클릭된 친구의 ProfileData 객체를 다음 화면으로 전달
                 Intent profileDetailActivity = new Intent(v.getContext(), ProfileDetailActivity.class); // ProfileDetailActivity는 실제 파일명으로 변경
-                profileDetailActivity.putExtra("profileData", ProfileData); // ProfileData 객체를 Intent에 담아 전달
+                profileDetailActivity.putExtra("profileData", (Parcelable) ProfileData); // ProfileData 객체를 Intent에 담아 전달
                 v.getContext().startActivity(profileDetailActivity);
             } else {
                 if (ProfileData.isSelected()) {

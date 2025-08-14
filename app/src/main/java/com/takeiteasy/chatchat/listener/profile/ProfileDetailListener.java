@@ -3,6 +3,7 @@ package com.takeiteasy.chatchat.listener.profile;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Parcelable;
 import android.view.View;
 
 import com.takeiteasy.chatchat.ChatRoomActivity;
@@ -66,7 +67,7 @@ public class ProfileDetailListener {
             public void onClick(View v) {
                 profile = viewModel.getProfile().getValue();
                 Intent profileEditIntent = new Intent(context,  ProfileEditActivity.class);
-                profileEditIntent.putExtra("profileData", profile); // ProfileData 객체를 Intent에 담아 전달
+                profileEditIntent.putExtra("profileData", (Parcelable) profile); // ProfileData 객체를 Intent에 담아 전달
                 context.startActivity(profileEditIntent);
             }
         });
